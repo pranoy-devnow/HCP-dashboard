@@ -59,10 +59,6 @@ export default function NotificationsPage() {
 
   return (
     <div className="px-4 lg:px-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
-      </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="mb-4">
           <TabsList className="w-fit">

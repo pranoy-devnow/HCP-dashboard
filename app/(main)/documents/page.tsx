@@ -31,7 +31,6 @@ export default function DocumentsPage() {
   return (
     <div className="px-4 lg:px-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-6">Documents</h1>
         <div className="relative mb-6 w-full sm:w-[420px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input

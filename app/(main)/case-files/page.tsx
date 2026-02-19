@@ -45,10 +45,7 @@ export default function CaseFilesListPage() {
 
   return (
     <div className="px-4 lg:px-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-6">Case Files</h1>
-
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
           <div className="relative w-full sm:w-[420px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
@@ -123,7 +120,6 @@ export default function CaseFilesListPage() {
             ))
           )}
         </div>
-      </div>
     </div>
   )
 }
