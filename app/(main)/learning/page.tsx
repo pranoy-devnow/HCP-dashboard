@@ -21,6 +21,7 @@ type Course = {
   goal: string
   modules: Module[]
   outcome: string
+  duration: string
 }
 
 const courses: Course[] = [
@@ -29,6 +30,7 @@ const courses: Course[] = [
     number: 1,
     title: "Foundations of NICU Pumping Care",
     goal: "Understand why early pumping matters and how to introduce the pathway safely.",
+    duration: "30 min",
     modules: [
       { title: "Role of milk for NICU infants", links: [{ label: "Providing Milk for Your NICU Baby. Getting Started", href: "#", type: "pdf" }] },
       { title: "Why pump type matters in NICU", links: [{ label: "Does the Type of Breast Pump Matter for a NICU Mom?", href: "#", type: "pdf" }] },
@@ -50,6 +52,7 @@ const courses: Course[] = [
       { title: "Logging first pumping data" },
     ],
     outcome: "Nurse confidently supports first pumping without overwhelming mother.",
+    duration: "45 min",
   },
   {
     id: "3",
@@ -63,6 +66,7 @@ const courses: Course[] = [
       { title: "Which program to use when", links: [{ label: "Program selection", href: "https://www.youtube.com/watch?v=rI5Y7TqQFTo", type: "video" }] },
     ],
     outcome: "Nurse can train mothers independently.",
+    duration: "25 min",
   },
   {
     id: "4",
@@ -77,6 +81,7 @@ const courses: Course[] = [
       { title: "Reporting issues via NICU app" },
     ],
     outcome: "Early prevention of injury and lactation failure.",
+    duration: "35 min",
   },
   {
     id: "5",
@@ -91,6 +96,7 @@ const courses: Course[] = [
       { title: "Size changes during first 14 days" },
     ],
     outcome: "Nurse personalizes pumping setup safely.",
+    duration: "40 min",
   },
   {
     id: "6",
@@ -105,6 +111,7 @@ const courses: Course[] = [
       { title: "Optimal breast shield pressure", links: [{ label: "Pressure video", href: "#", type: "video" }] },
     ],
     outcome: "Nurses can troubleshoot live pumping problems.",
+    duration: "20 min",
   },
   {
     id: "7",
@@ -118,6 +125,7 @@ const courses: Course[] = [
       { title: "Daily reassessment teaching" },
     ],
     outcome: "Higher milk output with reduced injury risk.",
+    duration: "30 min",
   },
   {
     id: "8",
@@ -132,6 +140,7 @@ const courses: Course[] = [
       { title: "Normal physiological responses" },
     ],
     outcome: "Mother leaves with a structured, achievable plan.",
+    duration: "25 min",
   },
   {
     id: "9",
@@ -146,6 +155,7 @@ const courses: Course[] = [
       { title: "Preparing for PP1 consultation" },
     ],
     outcome: "Nurses use digital tools consistently.",
+    duration: "15 min",
   },
   {
     id: "10",
@@ -159,6 +169,7 @@ const courses: Course[] = [
       { title: "Preparing PP2 consultation" },
     ],
     outcome: "Standardized follow-up across NICU staff.",
+    duration: "20 min",
   },
 ]
 
@@ -185,9 +196,14 @@ function CourseCard({
     <Card className={cn("overflow-hidden transition-all", isExpanded && "ring-2 ring-primary/20 border-primary/30")}>
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Badge variant="secondary" className="font-medium">
-            Course {course.number}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="font-medium">
+              Course {course.number}
+            </Badge>
+            <Badge variant="outline" className="font-normal">
+              {course.duration}
+            </Badge>
+          </div>
           <Button
             variant={isCompleted ? "default" : "outline"}
             size="xs"

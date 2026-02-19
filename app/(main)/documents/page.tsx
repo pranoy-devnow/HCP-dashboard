@@ -2,16 +2,17 @@
 
 import * as React from "react"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { FileText, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const mockDocuments = [
-  { id: "DOC-001", title: "Breastfeeding Basics Guide", topic: "Lactation support", pumpingProtocol: "Standard", education: "New parents", dateAdded: "2024-02-01", size: "2.4 MB" },
-  { id: "DOC-002", title: "Pumping Schedule Template", topic: "Pumping protocol", pumpingProtocol: "Hospital", education: "Clinical", dateAdded: "2024-01-28", size: "1.1 MB" },
-  { id: "DOC-003", title: "Nutrition During Lactation", topic: "Maternal nutrition", pumpingProtocol: "N/A", education: "New parents", dateAdded: "2024-01-25", size: "3.2 MB" },
-  { id: "DOC-004", title: "NICU Pumping Protocol", topic: "Pumping protocol", pumpingProtocol: "NICU", education: "Clinical", dateAdded: "2024-01-20", size: "1.8 MB" },
-  { id: "DOC-005", title: "Understanding Milk Supply", topic: "Lactation support", pumpingProtocol: "Standard", education: "New parents", dateAdded: "2024-01-15", size: "2.0 MB" },
-  { id: "DOC-006", title: "Staff Education: Hand Expression", topic: "Clinical skills", pumpingProtocol: "Hospital", education: "Staff", dateAdded: "2024-01-10", size: "0.9 MB" },
+  { id: "DOC-001", title: "Breastfeeding Basics Guide", topic: "Lactation support", pumpingProtocol: "Standard", education: "New parents", readTime: "8 min" },
+  { id: "DOC-002", title: "Pumping Schedule Template", topic: "Pumping protocol", pumpingProtocol: "Hospital", education: "Clinical", readTime: "4 min" },
+  { id: "DOC-003", title: "Nutrition During Lactation", topic: "Maternal nutrition", pumpingProtocol: "N/A", education: "New parents", readTime: "6 min" },
+  { id: "DOC-004", title: "NICU Pumping Protocol", topic: "Pumping protocol", pumpingProtocol: "NICU", education: "Clinical", readTime: "10 min" },
+  { id: "DOC-005", title: "Understanding Milk Supply", topic: "Lactation support", pumpingProtocol: "Standard", education: "New parents", readTime: "5 min" },
+  { id: "DOC-006", title: "Staff Education: Hand Expression", topic: "Clinical skills", pumpingProtocol: "Hospital", education: "Staff", readTime: "7 min" },
 ]
 
 export default function DocumentsPage() {
@@ -65,11 +66,12 @@ export default function DocumentsPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">{doc.topic}</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span>{doc.dateAdded}</span>
-                  <span>{doc.size}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{doc.pumpingProtocol}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{doc.education}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="font-normal">
+                    {doc.readTime} read
+                  </Badge>
+                  <Badge variant="outline" className="font-normal">{doc.pumpingProtocol}</Badge>
+                  <Badge variant="outline" className="font-normal">{doc.education}</Badge>
                 </div>
               </button>
             ))
