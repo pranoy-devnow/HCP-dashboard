@@ -11,6 +11,7 @@ import {
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
+import { useUnreadNotificationCount } from "@/lib/notifications-data"
 import {
   Sidebar,
   SidebarContent,
@@ -52,6 +53,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const unreadCount = useUnreadNotificationCount()
+  const badgeCounts = { Notifications: unreadCount }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -70,7 +73,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} badgeCounts={badgeCounts} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

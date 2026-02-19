@@ -15,12 +15,15 @@ import {
 
 export function NavMain({
   items,
+  badgeCounts,
 }: {
   items: {
     title: string
     url: string
     icon?: Icon
   }[]
+  /** Optional badge counts by item title, e.g. { Notifications: 5 } for unread count */
+  badgeCounts?: Record<string, number>
 }) {
   const pathname = usePathname()
   const { setOpen } = useSidebar()
@@ -33,16 +36,27 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
-                <Link href={item.url} onClick={handleNavClick}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            const count = badgeCounts?.[item.title] ?? 0
+            return (
+              <SidebarMenuItem key={item.title} className="relative">
+                <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
+                  <Link href={item.url} onClick={handleNavClick} className="flex items-center gap-2">
+                    {item.icon && <item.icon />}
+                    <span className="flex-1 truncate">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+                {count > 0 && (
+                  <span
+                    className="pointer-events-none absolute right-1 top-1/2 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold tabular-nums text-white shadow-sm ring-2 ring-background group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:translate-y-0 group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:min-w-4 group-data-[collapsible=icon]:text-[9px]"
+                    aria-label={`${count} unread notifications`}
+                  >
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

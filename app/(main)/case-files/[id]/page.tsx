@@ -31,17 +31,17 @@ import { cn } from "@/lib/utils"
 import { getPatientData } from "@/lib/case-files-data"
 import { formatAgeLive, getBirthDate } from "@/lib/time-since-birth"
 
-// Mock data for mother modal charts
+// Mock data for mother modal charts (session index used in tooltip)
 const hourlyMilkVolumeData = [
-  { hour: "06:00", volume: 25 },
-  { hour: "08:00", volume: 52 },
-  { hour: "10:00", volume: 78 },
-  { hour: "12:00", volume: 50 },
-  { hour: "14:00", volume: 15 },
-  { hour: "16:00", volume: 54 },
-  { hour: "18:00", volume: 88 },
-  { hour: "20:00", volume: 48 },
-  { hour: "22:00", volume: 32 },
+  { hour: "06:00", volume: 25, session: 1 },
+  { hour: "08:00", volume: 52, session: 2 },
+  { hour: "10:00", volume: 78, session: 3 },
+  { hour: "12:00", volume: 50, session: 4 },
+  { hour: "14:00", volume: 15, session: 5 },
+  { hour: "16:00", volume: 54, session: 6 },
+  { hour: "18:00", volume: 88, session: 7 },
+  { hour: "20:00", volume: 48, session: 8 },
+  { hour: "22:00", volume: 32, session: 9 },
 ]
 
 function getVolumeBarColor(volume: number): string {
@@ -714,11 +714,14 @@ function DetailModal({
   onClose,
   children,
   dialogClassName,
+  sessionCount,
 }: {
   title: string
   onClose: () => void
   children: React.ReactNode
   dialogClassName?: string
+  /** When set, shows a badge next to the title e.g. "9 sessions" (can vary per person). */
+  sessionCount?: number
 }) {
   return (
     <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
@@ -737,9 +740,16 @@ function DetailModal({
         >
           <div className="flex flex-col max-h-[85vh]">
             <div className="flex items-center justify-between border-b px-6 py-4">
-              <Dialog.Title className="text-lg font-semibold text-foreground">
-                {title}
-              </Dialog.Title>
+              <div className="flex items-center gap-2 min-w-0">
+                <Dialog.Title className="text-lg font-semibold text-foreground truncate">
+                  {title}
+                </Dialog.Title>
+                {sessionCount != null && (
+                  <Badge variant="secondary" className="shrink-0">
+                    {sessionCount} session{sessionCount !== 1 ? "s" : ""}
+                  </Badge>
+                )}
+              </div>
               <Dialog.Close className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none -mr-2">
                 <X className="size-5" />
                 <span className="sr-only">Close</span>
@@ -1116,7 +1126,7 @@ export default function CaseFileDetailPage() {
       </Card>
 
       {detailModal === "mother" && (
-        <DetailModal title={mockPatient.motherName} onClose={() => setDetailModal(null)} dialogClassName="max-w-2xl">
+        <DetailModal title={mockPatient.motherName} onClose={() => setDetailModal(null)} dialogClassName="max-w-2xl" sessionCount={hourlyMilkVolumeData.length}>
           <div className="space-y-4">
             <Tabs defaultValue="hourly" className="w-full">
               <TabsList className="w-full grid grid-cols-2">
@@ -1155,7 +1165,10 @@ export default function CaseFileDetailPage() {
                       content={
                         <ChartTooltipContent
                           className="w-[150px]"
-                          labelFormatter={(value) => value}
+                          labelFormatter={(_, payload) => {
+                            const session = payload?.[0]?.payload?.session
+                            return session != null ? `Session ${session}` : ""
+                          }}
                         />
                       }
                     />
