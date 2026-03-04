@@ -1,0 +1,36 @@
+# Dependencies (app in hcpdashboard/)
+hcpdashboard/node_modules
+hcpdashboard/.pnp
+hcpdashboard/.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js
+hcpdashboard/.next/
+hcpdashboard/out/
+
+# Production
+hcpdashboard/build/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Env
+hcpdashboard/.env*
+.env*
+
+# Vercel
+hcpdashboard/.vercel
+
+# TypeScript
+*.tsbuildinfo
