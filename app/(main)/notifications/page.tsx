@@ -1,48 +1,66 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { NotificationTimeline, type NotificationItem } from "@/components/notification-timeline"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { notifications, loadReadIds, saveReadIds } from "@/lib/notifications-data"
+import { getNotifications, loadReadIds, saveReadIds } from "@/services/notificationsService"
+import { cn } from "@/lib/utils"
 
-function categorizeNotifications(notifications: NotificationItem[]) {
-  const today: NotificationItem[] = []
-  const thisWeek: NotificationItem[] = []
-  const earlier: NotificationItem[] = []
+function getDateGroupLabel(timestamp: string | undefined): string {
+  const t = (timestamp ?? "").toLowerCase()
+  if (
+    t.includes("just now") ||
+    t.includes("minute") ||
+    t.includes("hour") ||
+    t.includes("1h ago") ||
+    t.includes("2h ago") ||
+    t.includes("3h ago") ||
+    t.includes("4h ago") ||
+    t.includes("5h ago")
+  ) {
+    return "Today"
+  }
+  if (t.includes("yesterday")) return "Yesterday"
+  if (t.includes("2 days")) return "2 days ago"
+  if (t.includes("3 days")) return "3 days ago"
+  if (t.includes("4 days")) return "4 days ago"
+  if (t.includes("5 days")) return "5 days ago"
+  if (t.includes("1 week")) return "1 week ago"
+  return "Earlier"
+}
 
-  notifications.forEach((notification) => {
-    const timestamp = notification.timestamp?.toLowerCase() || ""
-
-    if (
-      timestamp.includes("just now") ||
-      timestamp.includes("minute") ||
-      timestamp.includes("hour") ||
-      timestamp.includes("1h ago") ||
-      timestamp.includes("2h ago") ||
-      timestamp.includes("3h ago") ||
-      timestamp.includes("4h ago") ||
-      timestamp.includes("5h ago")
-    ) {
-      today.push(notification)
-    } else if (
-      timestamp.includes("yesterday") ||
-      timestamp.includes("2 days") ||
-      timestamp.includes("3 days") ||
-      timestamp.includes("4 days") ||
-      timestamp.includes("5 days")
-    ) {
-      thisWeek.push(notification)
-    } else {
-      earlier.push(notification)
-    }
+/** UX: show at most one notification per case so the list isn’t dominated by one patient; we keep the most recent per caseLabel. */
+function oneNotificationPerPatient(items: NotificationItem[]): NotificationItem[] {
+  const seen = new Set<string>()
+  return items.filter((n) => {
+    const name = n.caseLabel ?? "Case"
+    if (seen.has(name)) return false
+    seen.add(name)
+    return true
   })
+}
 
-  return { today, thisWeek, earlier }
+/** Group notifications by date label (newest first). Returns [ { label, items }, ... ] */
+function groupNotificationsByDate(items: NotificationItem[]): { label: string; items: NotificationItem[] }[] {
+  const groups: { label: string; items: NotificationItem[] }[] = []
+  let current: { label: string; items: NotificationItem[] } | null = null
+
+  for (const n of items) {
+    const label = getDateGroupLabel(n.timestamp)
+    if (!current || current.label !== label) {
+      current = { label, items: [] }
+      groups.push(current)
+    }
+    current.items.push(n)
+  }
+  return groups
 }
 
 export default function NotificationsPage() {
-  const [activeTab, setActiveTab] = useState("today")
-  const [readIds, setReadIds] = useState<Set<string>>(() => loadReadIds())
+  const [readIds, setReadIds] = useState<Set<string>>(() => new Set())
+
+  useEffect(() => {
+    setReadIds(loadReadIds())
+  }, [])
 
   const markRead = useCallback((id: string) => {
     setReadIds((prev) => {
@@ -52,73 +70,55 @@ export default function NotificationsPage() {
     })
   }, [])
 
-  const { today, thisWeek, earlier } = useMemo(
-    () => categorizeNotifications(notifications),
+  const groups = useMemo(
+    () => groupNotificationsByDate(oneNotificationPerPatient(getNotifications())),
     []
   )
 
+  if (groups.length === 0) {
+    return (
+      <div className="px-4 lg:px-6">
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No notifications
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 lg:px-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="mb-4">
-          <TabsList className="w-fit">
-            <TabsTrigger value="today">
-              Today
-              {today.length > 0 && (
-                <span className="ml-1.5 text-xs text-muted-foreground">
-                  ({today.length})
+      <div
+        className={cn(
+          "flex flex-col gap-6 max-h-[calc(100vh-var(--header-height)-6rem)] overflow-y-auto",
+          "pb-4 pr-1 -mr-1" /* scrollbar spacing */
+        )}
+      >
+        {groups.map(({ label, items }, index) => (
+          <section key={label} className="flex flex-col gap-3">
+            <div
+              className={cn(
+                "sticky top-0 z-10 flex items-center gap-3 py-1.5 text-xs font-medium text-muted-foreground",
+                "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+                "border-b border-border/60",
+                index === 0 && "justify-between"
+              )}
+            >
+              <span>{label}</span>
+              {index === 0 && (
+                <span className="flex items-center gap-1.5 font-normal">
+                  <span className="size-1.5 rounded-full bg-red-500 shrink-0" aria-hidden />
+                  Time sensitive
                 </span>
               )}
-            </TabsTrigger>
-            <TabsTrigger value="thisWeek">
-              This Week
-              {thisWeek.length > 0 && (
-                <span className="ml-1.5 text-xs text-muted-foreground">
-                  ({thisWeek.length})
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="earlier">
-              Earlier
-              {earlier.length > 0 && (
-                <span className="ml-1.5 text-xs text-muted-foreground">
-                  ({earlier.length})
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="today" className="mt-0">
-          {today.length > 0 ? (
-            <NotificationTimeline notifications={today} readIds={readIds} onMarkRead={markRead} />
-          ) : (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-              No notifications for today
-            </p>
-          )}
-        </TabsContent>
-
-        <TabsContent value="thisWeek" className="mt-0">
-          {thisWeek.length > 0 ? (
-            <NotificationTimeline notifications={thisWeek} readIds={readIds} onMarkRead={markRead} />
-          ) : (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-              No notifications for this week
-            </p>
-          )}
-        </TabsContent>
-
-        <TabsContent value="earlier" className="mt-0">
-          {earlier.length > 0 ? (
-            <NotificationTimeline notifications={earlier} readIds={readIds} onMarkRead={markRead} />
-          ) : (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-              No earlier notifications
-            </p>
-          )}
-        </TabsContent>
-      </Tabs>
+            </div>
+            <NotificationTimeline
+              notifications={items}
+              readIds={readIds}
+              onMarkRead={markRead}
+            />
+          </section>
+        ))}
+      </div>
     </div>
   )
 }

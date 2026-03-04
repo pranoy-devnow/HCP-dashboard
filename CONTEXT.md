@@ -9,7 +9,7 @@ Important context for developers and AI assistants: tech stack, structure, confi
 - **Name:** HCP Dashboard  
 - **Purpose:** Healthcare Professional (HCP) dashboard for **Medela** – manage case files, notifications, learning, and documents in one place.  
 - **Type:** Next.js web app (App Router), single frontend codebase.  
-- **Workspace:** Project root is `HCP dasboard`; app code lives in **`hcpdashboard/`**.
+- **Workspace:** Project root is `HCP dasboard`; the Next.js app lives at the **repo root** (no `hcpdashboard/` subfolder).
 
 ---
 
@@ -43,7 +43,7 @@ Important context for developers and AI assistants: tech stack, structure, confi
 ## 4. Project structure
 
 ```
-hcpdashboard/
+<repo root>/
 ├── app/
 │   ├── (main)/              # Main app layout group
 │   │   ├── dashboard/       # Main dashboard
@@ -129,17 +129,17 @@ git push -u origin main
 ## 9. Prerequisites & getting started
 
 - **Prerequisites:** Node.js v18+, npm / yarn / pnpm / bun.  
-- **Install:** From `hcpdashboard/`: `npm install` (or equivalent).  
+- **Install:** From the repo root: `npm install` (or equivalent).  
 - **Run dev:** `npm run dev` → [http://localhost:3000](http://localhost:3000).  
 
 ---
 
 ## 10. Quick reference
 
-- **App entry:** `hcpdashboard/app/page.tsx`, `hcpdashboard/app/layout.tsx`.  
-- **Main layout/shell:** `hcpdashboard/app/(main)/layout.tsx`, sidebar/header in `components/`.  
-- **Shared UI:** `hcpdashboard/components/ui/`.  
-- **Data/helpers:** `hcpdashboard/lib/`.  
+- **App entry:** `app/page.tsx`, `app/layout.tsx`.  
+- **Main layout/shell:** `app/(main)/layout.tsx`, sidebar/header in `components/`.  
+- **Shared UI:** `components/ui/`.  
+- **Data/helpers:** `lib/`. **API layer:** `services/`, **types:** `types/`.  
 - **Metadata:** Title “HCP Dashboard”, description and OpenGraph set in root `app/layout.tsx`.
 
 ---

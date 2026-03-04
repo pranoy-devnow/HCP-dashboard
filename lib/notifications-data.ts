@@ -1,11 +1,12 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
-import type { NotificationItem } from "@/components/notification-timeline"
+import type { NotificationItem } from "@/types/notifications"
 import { caseFiles, babyTitle } from "@/lib/case-files-data"
 
 export const STORAGE_KEY_READ_IDS = "hcp-notifications-read-ids"
 
+/** Read state is stored in localStorage so it persists across tabs; we fire a custom event on write so the sidebar unread badge and notification list can re-sync without polling. */
 export function loadReadIds(): Set<string> {
   if (typeof window === "undefined") return new Set()
   try {
@@ -18,6 +19,7 @@ export function loadReadIds(): Set<string> {
   }
 }
 
+/** Persist read IDs and notify listeners (e.g. useUnreadNotificationCount) so the badge and list update in the same tab without a full reload. */
 export function saveReadIds(ids: Set<string>) {
   try {
     localStorage.setItem(STORAGE_KEY_READ_IDS, JSON.stringify([...ids]))
