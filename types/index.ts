@@ -2,6 +2,7 @@
 export type {
   BabyGender,
   CaseFileRecord,
+  PatientStatus,
   TimelineSectionKey,
   Note,
   CompletionEntry,
@@ -12,10 +13,4 @@ export { TIMELINE_SECTIONS } from "./case-files"
 
 export type { SessionUser } from "./session"
 
-export type {
-  NotificationSeverity,
-  NotificationItem,
-  NotificationTimelineProps,
-} from "./notifications"
-
-export type { ModuleLink, Module, Course } from "./learning"
+export type { AlertSeverity, AlertType, Alert } from "./alerts"

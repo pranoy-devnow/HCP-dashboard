@@ -5,7 +5,7 @@ All backend/API communication must go through service files in this folder.
 ## Rules
 
 - **Do not** call `fetch`, `axios`, or other HTTP clients from components or pages.
-- Each service file encapsulates one domain (e.g. `caseFilesService.ts`, `notificationsService.ts`).
+- Each service file encapsulates one domain (e.g. `caseFilesService.ts`, `alertsService.ts`).
 - Use try/catch and log meaningful errors inside services.
 - Types for API requests and responses live in `@/types/`.
 
@@ -15,9 +15,8 @@ All backend/API communication must go through service files in this folder.
 |--------|---------|------------------------|
 | `api.ts` | `getApiBaseUrl()`, `apiRequest()` for shared fetch config and error handling | Use in all services for HTTP calls |
 | `caseFilesService.ts` | Case files list and detail | `getCaseFiles()` → GET /api/case-files, `getCaseFileById(id)` → GET /api/case-files/:id |
-| `notificationsService.ts` | Notifications list and read state | `getNotifications()` → GET /api/notifications, `saveReadIds()` → PATCH /api/notifications/read |
 | `authService.ts` | Session (login/logout) | `setSession()` after POST /api/auth/login; optional token refresh |
-| `learningService.ts` | Learning courses | `getCourses()` → GET /api/learning/courses |
+| `alertsService.ts` | Clinical alerts and read state | `getAlerts()` / `getAlertsByCaseId()` → GET /api/alerts |
 
 ## Usage
 

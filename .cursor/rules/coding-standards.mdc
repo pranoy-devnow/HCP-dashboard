@@ -1,0 +1,55 @@
+---
+description: Core coding rules for HCP Dashboard — always follow these standards
+alwaysApply: true
+---
+
+# HCP Dashboard Coding Rules
+
+Always follow these rules when editing this project.
+
+## 1. Write Code for Humans
+- Prefer clarity over clever or complex solutions.
+- Code must be easy to read and understand.
+
+## 2. Clear Naming
+- Components → `PascalCase`
+- Functions → `camelCase`
+- Constants → `UPPER_CASE`
+- Example: `getEmployeeInsights()` not `getEI()`.
+
+## 3. Keep Files Small
+- One responsibility per file. Avoid large files with mixed logic.
+
+## 4. Separate UI, Logic, and Data
+- **Components** → UI only
+- **Hooks / utils** → logic
+- **Services** → API calls
+- Never mix everything in one component.
+
+## 5. No API Calls in Components
+- All backend communication goes through **service files** (e.g. `services/insightService.ts`).
+- Do not call `fetch`, `axios`, or other HTTP clients from components or pages.
+
+## 6. Avoid Deep Nesting
+- Use early returns instead of nested conditions.
+
+## 7. Reusable Components
+- If something appears more than twice, create a reusable component (e.g. `<Button />`, `<Card />`).
+
+## 8. TypeScript
+- Define types for: props, API responses, data models.
+
+## 9. Error Handling
+- Use try/catch and log meaningful errors.
+
+## 10. Folder Structure
+- Use: `/app`, `/components`, `/hooks`, `/services`, `/types`, `/lib`.
+
+## 11. No Hardcoded Values
+- Use environment variables for configs and URLs (e.g. `process.env.API_URL`).
+
+## 12. Comments
+- Comment the **why**, not what the code does.
+
+## 13. Prefer Simple Solutions
+- Choose the simplest solution that works.

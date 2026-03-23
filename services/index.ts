@@ -10,17 +10,19 @@ export {
 } from "./caseFilesService"
 
 export {
-  getNotifications,
-  loadReadIds,
-  saveReadIds,
-} from "./notificationsService"
-
-export {
   getSession,
   setSession,
   clearSession,
 } from "./authService"
 
-export { getCourses } from "./learningService"
+export {
+  getAlerts,
+  getAlertsByCaseId,
+  loadAlertsReadIds,
+  saveAlertsReadIds,
+  markAlertRead,
+} from "./alertsService"
+
+export { loadPendingConsultReadIds, markPendingConsultRead } from "./pendingConsultReadService"
 
 export { getApiBaseUrl, apiRequest } from "./api"

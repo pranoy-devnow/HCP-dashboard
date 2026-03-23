@@ -2,16 +2,14 @@
 
 import * as React from "react"
 import {
-  IconBell,
-  IconBook2,
   IconFileDescription,
-  IconFiles,
   IconInnerShadowTop,
+  IconCalendarEvent,
+  IconLayoutGrid,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
-import { useUnreadNotificationCount } from "@/lib/notifications-data"
 import {
   Sidebar,
   SidebarContent,
@@ -30,9 +28,9 @@ const data = {
   },
   navMain: [
     {
-      title: "Notifications",
-      url: "/notifications",
-      icon: IconBell,
+      title: "My Day",
+      url: "/my-day",
+      icon: IconCalendarEvent,
     },
     {
       title: "Case files",
@@ -40,21 +38,14 @@ const data = {
       icon: IconFileDescription,
     },
     {
-      title: "Learning",
-      url: "/learning",
-      icon: IconBook2,
-    },
-    {
-      title: "Documents",
-      url: "/documents",
-      icon: IconFiles,
+      title: "Cards",
+      url: "/cards",
+      icon: IconLayoutGrid,
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const unreadCount = useUnreadNotificationCount()
-  const badgeCounts = { Notifications: unreadCount }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -73,7 +64,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} badgeCounts={badgeCounts} />
+        <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

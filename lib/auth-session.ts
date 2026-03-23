@@ -21,7 +21,8 @@ export function getSessionUser(): SessionUser | null {
   return getStored()
 }
 
-const SESSION_CHANGE_EVENT = "hcp-session-change"
+/** Fired when session is set or cleared (same-tab listeners). */
+export const SESSION_CHANGE_EVENT = "hcp-session-change"
 
 function notifySessionChange() {
   if (typeof window === "undefined") return

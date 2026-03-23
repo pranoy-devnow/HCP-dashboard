@@ -1,6 +1,13 @@
 /** Gender label for baby in case file. */
 export type BabyGender = "Baby Boy" | "Baby Girl" | "Unknown"
 
+/** Semantic patient status used in dashboard flow (Figma-style). */
+export type PatientStatus =
+  | "Critical Window"
+  | "High priority"
+  | "Active"
+  | "Needs Follow-up"
+
 export type CaseFileRecord = {
   id: string
   motherLastName: string
@@ -19,7 +26,24 @@ export type CaseFileRecord = {
   babyLocation: { room: string; bed: string }
   dateCreated: string
   lastUpdated: string
+  /** Prefer PatientStatus values; legacy strings allowed for backward compatibility. */
   status: string
+  /** Pregnancy number (Gravida). */
+  gravida?: number
+  /** Birth order (1 = first child, 2 = second child, etc.). */
+  parity?: number
+  /** Maternal/infant risk factor to display (e.g. Obesity, C-section, Preterm). */
+  riskFactor?: string
+  /** e.g. Vaginal, C-section. */
+  deliveryType?: string
+  /** e.g. Breastfeeding, Pumping, Mixed, NPO. */
+  feedingStatus?: string
+  /** Sodium level (e.g. "142 mEq/L"). */
+  sodiumLevel?: string
+  /** Reason for C-section when deliveryType is C-section. */
+  reasonForCSection?: string
+  /** e.g. Breast, Bottle, Mixed. */
+  feedingMethod?: string
 }
 
 /** Care timeline section keys (hours since birth). */

@@ -1,0 +1,17 @@
+---
+description: API and service layer rules — use when editing services or API calls
+globs: services/**/*.ts
+alwaysApply: false
+---
+
+# Services Layer Rules
+
+When working in `services/` or with API communication:
+
+- **Do not** call `fetch`, `axios`, or other HTTP clients from components or pages.
+- Each service file encapsulates **one domain** (e.g. `caseFilesService.ts`, `alertsService.ts`).
+- Use **try/catch** and log meaningful errors inside services.
+- Types for API requests and responses live in `@/types/`.
+- Use `api.ts` (`getApiBaseUrl()`, `apiRequest()`) for shared fetch config and error handling.
+
+Components and pages must call service functions (e.g. `getCaseFileById`, `getAlertsByCaseId`) instead of importing HTTP clients or calling APIs directly.

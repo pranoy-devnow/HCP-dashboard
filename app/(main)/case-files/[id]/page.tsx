@@ -2,39 +2,55 @@
 
 import * as React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { ArrowUpRight, MapPin, Users2 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { getCaseFileById } from "@/services/caseFilesService"
-import { formatAgeLive } from "@/lib/time-since-birth"
-import { getHoursSinceBirth, getCurrentSectionKey } from "@/lib/case-file-detail-helpers"
 import { hourlyMilkVolumeData } from "@/lib/case-files-chart-data"
-import { TIMELINE_SECTIONS } from "@/types/case-files"
-import {
-  timelineChecklists,
-  getAllTimelineItemIds,
-  getMockLogData,
-} from "@/lib/case-files-timeline-data"
-import { CURRENT_USER_NAME } from "@/lib/constants"
+import { getMockLogData } from "@/lib/case-files-timeline-data"
 import type { Note, CompletionEntry } from "@/types/case-files"
 import {
   LogSheet,
   DetailModal,
-  TimelineBlock,
   MotherModalContent,
   BabyModalContent,
+  PumpingSessionsSection,
+  type PumpingSessionsTab,
 } from "@/components/case-file-detail"
+import {
+  AtRiskConditionsCard,
+  UrgentActionCard,
+  InfantDataSection,
+  MomDataSection,
+} from "@/components/case-file-detail/cards"
+import {
+  getAtRiskConditionsCardData,
+  getUrgentActionCardData,
+  getInfantDataItems,
+} from "@/lib/case-file-detail-cards-data"
+import { getMomDataItems } from "@/lib/mom-data-cards-data"
+import { mapInfantDataToCardItems } from "@/lib/infant-data-icons"
+import { getCaseFileBackNavigation } from "@/lib/case-file-back-navigation"
+
+const MOM_DATA_KNOW_MORE_SINGLE_TAB: Record<string, PumpingSessionsTab> = {
+  "milk-trend-volume": "trend",
+  "left-and-right": "leftRight",
+  "recent-session": "recent",
+}
+
+const MOM_DATA_KNOW_MORE_MODAL_TITLE: Record<string, string> = {
+  "milk-trend-volume": "Milk Volume Trend",
+  "left-and-right": "Left vs Right",
+  "recent-session": "Recent Sessions",
+}
 
 export default function CaseFileDetailPage() {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const sectionFromUrl = searchParams.get("section") ?? null
-  const itemFromUrl = searchParams.get("item") ?? null
-  const fromFromUrl = searchParams.get("from") ?? null
-  const backToNotifications = fromFromUrl === "notifications"
+  const backNav = getCaseFileBackNavigation(searchParams.get("from"))
   const patientId = pathname.split("/").pop() ?? ""
   const isMockProfile = patientId === "mock"
 
@@ -44,27 +60,17 @@ export default function CaseFileDetailPage() {
   const [completionLog, setCompletionLog] = React.useState<CompletionEntry[]>(() =>
     isMockProfile ? getMockLogData().completionLog : []
   )
-  const [completedIds, setCompletedIds] = React.useState<Set<string>>(() =>
-    isMockProfile ? getAllTimelineItemIds() : new Set()
-  )
-  const [skippedIds, setSkippedIds] = React.useState<Set<string>>(() => new Set())
   const [isLogOpen, setIsLogOpen] = React.useState(false)
   const [noteContext, setNoteContext] = React.useState<{ id: string; label: string } | null>(null)
   const [detailModal, setDetailModal] = React.useState<"mother" | "baby" | null>(null)
+  const [momDataKnowMoreId, setMomDataKnowMoreId] = React.useState<string | null>(null)
 
   const mockPatient = getCaseFileById(patientId)
-  const [now, setNow] = React.useState(() => new Date())
 
-  React.useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(t)
-  }, [])
-
-  // When navigating from another case to the "mock" demo profile, load its pre-filled completed timeline and log so the demo looks realistic without requiring the user to complete every item.
+  // When navigating to the "mock" demo profile, load sample log data for the Log sheet.
   const prevPatientIdRef = React.useRef(patientId)
   React.useEffect(() => {
     if (prevPatientIdRef.current !== "mock" && patientId === "mock") {
-      setCompletedIds(getAllTimelineItemIds())
       const mock = getMockLogData()
       setCompletionLog(mock.completionLog)
       setPatientNotes(mock.patientNotes)
@@ -72,31 +78,10 @@ export default function CaseFileDetailPage() {
     prevPatientIdRef.current = patientId
   }, [patientId])
 
-  React.useEffect(() => {
-    if (!itemFromUrl) return
-    const el = document.getElementById(`timeline-item-${itemFromUrl}`)
-    if (el) {
-      const t = setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300)
-      return () => clearTimeout(t)
-    }
-  }, [sectionFromUrl, itemFromUrl])
-
   const handleAddNote = (text: string, source: string) => {
     const newNote: Note = { id: Date.now().toString(), text, timestamp: new Date(), source }
     setPatientNotes((prev) => [...prev, newNote])
     setNoteContext(null)
-  }
-
-  const handleMarkCompleted = (itemId: string, itemLabel: string) => {
-    setCompletedIds((prev) => new Set(prev).add(itemId))
-    setCompletionLog((prev) => [
-      ...prev,
-      { id: Date.now().toString(), by: CURRENT_USER_NAME, itemLabel, timestamp: new Date() },
-    ])
-  }
-
-  const handleSkip = (itemId: string) => {
-    setSkippedIds((prev) => new Set(prev).add(itemId))
   }
 
   const handleOpenLog = (item: { id: string; label: string } | null = null) => {
@@ -107,8 +92,8 @@ export default function CaseFileDetailPage() {
   if (!mockPatient) {
     return (
       <div className="px-4 lg:px-6">
-        <Button variant="ghost" size="sm" onClick={() => router.push(backToNotifications ? "/notifications" : "/case-files")} className="mb-4">
-          {backToNotifications ? "← Back to Notifications" : "← Back to Case Files"}
+        <Button variant="ghost" size="sm" onClick={() => router.push(backNav.path)} className="mb-4">
+          ← {backNav.label}
         </Button>
         <Card className="mb-6">
           <CardContent className="py-12 text-center text-muted-foreground">
@@ -120,22 +105,21 @@ export default function CaseFileDetailPage() {
     )
   }
 
-  const realHoursSinceBirth = getHoursSinceBirth(mockPatient.dateOfBirth, mockPatient.birthTime, now)
-  // Demo: cycle 0–24h so the "current" timeline section always stays in view; each baby has a different birth time so they land in different sections. For production, use realHoursSinceBirth and drop the modulo so that after 24h the timeline shows "24h+" and no section is current.
-  const hoursSinceBirth = realHoursSinceBirth >= 24 ? realHoursSinceBirth % 24 : realHoursSinceBirth
-  const currentSectionKey = getCurrentSectionKey(hoursSinceBirth)
-  const ageDisplayForCard = (() => {
-    const h = Math.floor(hoursSinceBirth)
-    const m = Math.round((hoursSinceBirth - h) * 60)
-    return m === 0 ? `${h}h` : `${h}h ${m}m`
-  })()
+  const atRiskData = getAtRiskConditionsCardData(mockPatient)
+  const urgentActionData = getUrgentActionCardData(mockPatient)
+  const infantDataItems = React.useMemo(
+    () => mapInfantDataToCardItems(getInfantDataItems(mockPatient)),
+    [patientId]
+  )
+  const momDataItems = React.useMemo(() => getMomDataItems(mockPatient), [patientId])
 
   return (
     <div className="px-4 lg:px-6">
-      <Button variant="ghost" size="sm" onClick={() => router.push(backToNotifications ? "/notifications" : "/case-files")} className="mb-4">
-        {backToNotifications ? "← Back to Notifications" : "← Back to Case Files"}
+      <Button variant="ghost" size="sm" onClick={() => router.push(backNav.path)} className="mb-4">
+        ← {backNav.label}
       </Button>
 
+      {/* Summary card — at the very top */}
       <Card className="mb-6">
         <CardContent className="py-5 px-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-0">
@@ -149,18 +133,26 @@ export default function CaseFileDetailPage() {
                 <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">{mockPatient.motherLastName}, {mockPatient.babyGender}</h3>
                 <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
               </button>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted-foreground">Gestational age</dt>
-                <dd className="font-medium">{mockPatient.gestationalAgeWeeks}w</dd>
-                <dt className="text-muted-foreground">Chronological</dt>
-                <dd className="font-medium">{ageDisplayForCard}</dd>
-                <dt className="text-muted-foreground">Corrected age</dt>
-                <dd className="font-medium">{ageDisplayForCard}</dd>
-                <dt className="text-muted-foreground">Birth weight</dt>
-                <dd className="font-medium">{mockPatient.birthWeight}</dd>
-                <dt className="text-muted-foreground">Current weight</dt>
-                <dd className="font-medium">{mockPatient.currentWeight}</dd>
-              </dl>
+              <p className="text-sm text-muted-foreground">
+                DOB{" "}
+                <span className="font-medium text-foreground">
+                  {(() => {
+                    const [mm, dd, yyyy] = mockPatient.dateOfBirth.split("/").map(Number)
+                    if ([mm, dd, yyyy].some(Number.isNaN)) return mockPatient.dateOfBirth
+                    return new Date(yyyy, mm - 1, dd).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  })()}
+                </span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Patient ID{" "}
+                <Badge variant="secondary" className="font-mono text-xs font-normal">
+                  {mockPatient.id === "mock" ? "PAT-MOCK-001" : mockPatient.id}
+                </Badge>
+              </p>
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 lg:border-r lg:px-6 lg:border-border">
@@ -197,17 +189,11 @@ export default function CaseFileDetailPage() {
                     {mockPatient.motherAgeYears} years old · Baby: {mockPatient.motherLastName}
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <Badge variant="secondary" className="font-mono text-xs font-normal">
-                      {mockPatient.id === "mock" ? "PAT-MOCK-001" : mockPatient.id}
+                    <Badge variant="secondary" className="text-xs font-normal">
+                      Gravida {mockPatient.gravida ?? "—"}
                     </Badge>
-                    <Badge
-                      variant={mockPatient.status === "Active" ? "default" : "secondary"}
-                      className={cn(
-                        "text-xs font-normal",
-                        mockPatient.status === "High priority" && "bg-red-500/15 text-red-600 border-red-500/30 hover:bg-red-500/25 dark:text-red-400 dark:border-red-500/30"
-                      )}
-                    >
-                      {mockPatient.status}
+                    <Badge variant="secondary" className="text-xs font-normal">
+                      {mockPatient.riskFactor ?? "—"}
                     </Badge>
                   </div>
                 </div>
@@ -216,6 +202,33 @@ export default function CaseFileDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Separator className="my-6" />
+
+      {/* Alerts & metrics: urgent + at-risk only (two columns on large screens) */}
+      <section className="space-y-4" aria-labelledby="alerts-metrics-heading">
+        <h2 id="alerts-metrics-heading" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Alerts & metrics
+        </h2>
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+          {urgentActionData != null && (
+            <UrgentActionCard
+              data={urgentActionData}
+              onChecklistClick={() => handleOpenLog(null)}
+            />
+          )}
+          {atRiskData != null && <AtRiskConditionsCard data={atRiskData} />}
+        </div>
+      </section>
+
+      <Separator className="my-6" />
+
+      {/* Full-width tinted card — same structure as Mom Data below */}
+      <InfantDataSection items={infantDataItems} />
+
+      <Separator className="my-6" />
+
+      <MomDataSection items={momDataItems} onKnowMore={(id) => setMomDataKnowMoreId(id)} />
 
       {detailModal === "mother" && (
         <DetailModal title={mockPatient.motherName} onClose={() => setDetailModal(null)} dialogClassName="max-w-2xl" sessionCount={hourlyMilkVolumeData.length}>
@@ -229,50 +242,26 @@ export default function CaseFileDetailPage() {
         </DetailModal>
       )}
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 w-full">
-            <CardTitle className="shrink-0">Care Timeline</CardTitle>
-            {!isMockProfile && (
-              <span className="text-sm text-muted-foreground font-normal tabular-nums">
-                {formatAgeLive(mockPatient.dateOfBirth, mockPatient.birthTime, now)}
-              </span>
-            )}
-            <CardAction className="ml-auto shrink-0">
-              <Button variant="outline" size="sm" onClick={() => handleOpenLog(null)}>
-                Log
-              </Button>
-            </CardAction>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3">
-            {TIMELINE_SECTIONS.map((timeRange) => (
-              <TimelineBlock
-                key={timeRange}
-                timeRange={timeRange}
-                items={timelineChecklists[timeRange]}
-                defaultOpen={false}
-                isCurrentSection={!isMockProfile && currentSectionKey === timeRange}
-                onOpenNotes={(item, isGeneral) => handleOpenLog(isGeneral ? null : item)}
-                onMarkCompleted={handleMarkCompleted}
-                onSkip={handleSkip}
-                isNotesOpen={isLogOpen}
-                completedIds={completedIds}
-                skippedIds={skippedIds}
-              />
-            ))}
-          </div>
-          <LogSheet
-            notes={patientNotes}
-            completionLog={completionLog}
-            noteContext={noteContext}
-            onAddNote={handleAddNote}
-            isOpen={isLogOpen}
-            onClose={() => setIsLogOpen(false)}
+      {momDataKnowMoreId != null && (
+        <DetailModal
+          title={MOM_DATA_KNOW_MORE_MODAL_TITLE[momDataKnowMoreId] ?? "Pumping & volume"}
+          onClose={() => setMomDataKnowMoreId(null)}
+          dialogClassName="max-w-4xl w-[calc(100vw-2rem)]"
+        >
+          <PumpingSessionsSection
+            singleTab={MOM_DATA_KNOW_MORE_SINGLE_TAB[momDataKnowMoreId] ?? "recent"}
           />
-        </CardContent>
-      </Card>
+        </DetailModal>
+      )}
+
+      <LogSheet
+        notes={patientNotes}
+        completionLog={completionLog}
+        noteContext={noteContext}
+        onAddNote={handleAddNote}
+        isOpen={isLogOpen}
+        onClose={() => setIsLogOpen(false)}
+      />
     </div>
   )
 }

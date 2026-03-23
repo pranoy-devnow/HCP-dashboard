@@ -3,25 +3,15 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { FolderOpen, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { caseFiles, babyTitle } from "@/lib/case-files-data"
 import { formatAgeLive } from "@/lib/time-since-birth"
 
-const patientNames = Array.from(new Set(caseFiles.map((file) => babyTitle(file)))).sort()
-
 export default function CaseFilesListPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = React.useState("")
-  const [patientFilter, setPatientFilter] = React.useState<string>("all")
   const [now, setNow] = React.useState(() => new Date())
   React.useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000)
@@ -29,48 +19,30 @@ export default function CaseFilesListPage() {
   }, [])
 
   const filteredCaseFiles = React.useMemo(() => {
-    let files = caseFiles
-    if (patientFilter !== "all") {
-      files = files.filter((file) => babyTitle(file) === patientFilter)
-    }
-    if (!searchQuery.trim()) return files
+    if (!searchQuery.trim()) return caseFiles
     const query = searchQuery.toLowerCase()
-    return files.filter(
+    return caseFiles.filter(
       (file) =>
         babyTitle(file).toLowerCase().includes(query) ||
         file.motherName.toLowerCase().includes(query) ||
         `${file.location.room} ${file.location.bed}`.toLowerCase().includes(query)
     )
-  }, [searchQuery, patientFilter])
+  }, [searchQuery])
 
   return (
     <div className="px-4 lg:px-6">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
-          <div className="relative w-full sm:w-[420px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search by baby or mother name, room..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 w-full sm:w-[420px]"
-            />
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm text-muted-foreground">Baby</span>
-            <Select value={patientFilter} onValueChange={setPatientFilter}>
-              <SelectTrigger className="min-w-[200px]">
-                <SelectValue placeholder="All babies" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All babies</SelectItem>
-                {patientNames.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="mb-6">
+        <div className="relative w-full max-w-xl">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by baby or mother name, room..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9"
+          />
         </div>
+      </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCaseFiles.length === 0 ? (
@@ -105,12 +77,13 @@ export default function CaseFilesListPage() {
                   <Badge variant="secondary" className="tabular-nums font-medium shrink-0">
                     Age: {formatAgeLive(file.dateOfBirth, file.birthTime, now)}
                   </Badge>
-                  <span
-                    className={cn(
-                      "px-2 py-0.5 rounded-full text-xs font-medium",
-                      file.status === "High priority"
-                        ? "bg-red-500/15 text-red-600 dark:text-red-400"
-                        : "bg-primary/10 text-primary"
+                    <span
+                      className={cn(
+                        "px-2 py-0.5 rounded-full text-xs font-medium",
+                        file.status === "High priority" && "bg-red-500/15 text-red-600 dark:text-red-400",
+                        file.status === "Critical Window" && "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+                        file.status === "Needs Follow-up" && "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+                        !["High priority", "Critical Window", "Needs Follow-up"].includes(file.status) && "bg-primary/10 text-primary"
                     )}
                   >
                     {file.status}

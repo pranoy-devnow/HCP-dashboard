@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s | HCP Dashboard",
   },
   description:
-    "Healthcare Professional Dashboard for Medela – manage case files, notifications, learning, and documents in one place.",
+    "Healthcare Professional Dashboard for Medela – manage case files and daily workflows in one place.",
 };
 
 export default function RootLayout({

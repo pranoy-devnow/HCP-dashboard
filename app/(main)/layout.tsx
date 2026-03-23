@@ -16,6 +16,7 @@ export default function MainLayout({
   return (
     <SidebarProvider
       defaultOpen={true}
+      className="h-svh max-h-svh overflow-hidden"
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -24,9 +25,9 @@ export default function MainLayout({
       }
     >
       <AppSidebar variant="inset" collapsible="icon" />
-      <SidebarInset>
+      <SidebarInset className="min-h-0 overflow-hidden">
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               {children}

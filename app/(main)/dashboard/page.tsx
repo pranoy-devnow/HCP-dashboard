@@ -1,17 +1,9 @@
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
+import { redirect } from "next/navigation"
 
-import data from "./data.json"
-
-export default function Page() {
-  return (
-    <>
-      <SectionCards />
-      <div className="px-4 lg:px-6">
-        <ChartAreaInteractive />
-      </div>
-      <DataTable data={data} />
-    </>
-  )
+/**
+ * Dashboard route redirects to My Day as the primary HCP landing.
+ * The previous dashboard content (charts, table) has been superseded by My Day.
+ */
+export default function DashboardPage() {
+  redirect("/my-day")
 }
