@@ -110,18 +110,22 @@ No `.env` or `.env.example` files are present in the repo; add them as needed fo
 ## 8. GitHub & version control
 
 - **Current state:** Project is in a Git repository (default branch `main`).  
-- **Suggested info to add when you set up a repo:**
-  - Repository URL (e.g. `https://github.com/<org>/<hcp-dashboard>`).  
-  - Default branch (e.g. `main`).  
-  - Branch strategy (e.g. main + feature branches).  
-  - CI/CD: e.g. Vercel Git integration, or GitHub Actions for build/lint.  
-  - Any required secrets (e.g. `VERCEL_URL` is set by Vercel; add others as needed).
+- **Remote `origin` (canonical):** `git@github.com:pranoy-devnow/HCP-dashboard.git`  
+  - HTTPS equivalent: `https://github.com/pranoy-devnow/HCP-dashboard.git`
+- **Default branch:** `main`  
+- **Branch strategy / CI:** Use feature branches as needed; Vercel or GitHub Actions can run build/lint on push.
 
-**Push to GitHub:** From the project root (`HCP dasboard`), after creating a new repository on GitHub (do not initialize with README), run (replace with your repo URL):
+**First-time setup** (if `origin` is not set yet), from the project root (`HCP dasboard`):
 
 ```bash
-git remote add origin https://github.com/YOUR_ORG/YOUR_REPO.git
+git remote add origin git@github.com:pranoy-devnow/HCP-dashboard.git
 git push -u origin main
+```
+
+**Push updates to `main`:**
+
+```bash
+git push origin main
 ```
 
 ---
