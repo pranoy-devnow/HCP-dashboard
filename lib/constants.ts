@@ -15,6 +15,13 @@ export const LOGIN_HERO_IMAGE = "/Images/login-hero.jpg"
 /** Primary route after sign-in from the login screen (not Case Files). */
 export const POST_LOGIN_REDIRECT_PATH = "/my-day" as const
 
+/**
+ * Set in sessionStorage right before redirecting to My Day after login.
+ * My Day reads it once to expand the sidebar; any click on My Day content collapses it.
+ */
+export const SESSION_STORAGE_EXPAND_SIDEBAR_AFTER_LOGIN =
+  "hcp-expand-sidebar-after-login" as const
+
 /** Display name for the current user in demo/log (e.g. completion log "by"). */
 export const CURRENT_USER_NAME = "Jake"
 

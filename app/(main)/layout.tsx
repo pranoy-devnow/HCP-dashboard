@@ -15,7 +15,7 @@ export default function MainLayout({
 }) {
   return (
     <SidebarProvider
-      defaultOpen={true}
+      defaultOpen={false}
       className="h-svh max-h-svh overflow-hidden"
       style={
         {

@@ -1,7 +1,10 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { POST_LOGIN_REDIRECT_PATH } from "@/lib/constants"
+import {
+  POST_LOGIN_REDIRECT_PATH,
+  SESSION_STORAGE_EXPAND_SIDEBAR_AFTER_LOGIN,
+} from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,6 +25,11 @@ export function LoginForm({
 
   const goToApp = (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault()
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_EXPAND_SIDEBAR_AFTER_LOGIN, "1")
+    } catch {
+      // ignore (private mode, etc.)
+    }
     router.replace(POST_LOGIN_REDIRECT_PATH)
   }
 

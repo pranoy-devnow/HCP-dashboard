@@ -34,13 +34,33 @@ import { getHoursSinceBirth } from "@/lib/case-file-detail-helpers"
 import { formatAgeLive } from "@/lib/time-since-birth"
 import { caseFileHrefFromMyDay } from "@/lib/case-file-back-navigation"
 import { formatMyDayAlertDayHeading, groupAlertsByLocalDay } from "@/lib/alert-day-grouping"
+import { SESSION_STORAGE_EXPAND_SIDEBAR_AFTER_LOGIN } from "@/lib/constants"
+import { useSidebar } from "@/components/ui/sidebar"
 
 export default function MyDayPage() {
+  const { setOpen, setOpenMobile } = useSidebar()
   const [now, setNow] = React.useState(() => new Date())
   React.useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000)
     return () => clearInterval(t)
   }, [])
+
+  /** First arrival from login: expand sidebar once (see login-form + SESSION_STORAGE_*). */
+  React.useLayoutEffect(() => {
+    try {
+      if (sessionStorage.getItem(SESSION_STORAGE_EXPAND_SIDEBAR_AFTER_LOGIN) === "1") {
+        sessionStorage.removeItem(SESSION_STORAGE_EXPAND_SIDEBAR_AFTER_LOGIN)
+        setOpen(true)
+      }
+    } catch {
+      // ignore
+    }
+  }, [setOpen])
+
+  const collapseSidebarFromMyDayContent = React.useCallback(() => {
+    setOpen(false)
+    setOpenMobile(false)
+  }, [setOpen, setOpenMobile])
 
   const caseFiles = React.useMemo(() => getCaseFiles(), [])
   const priorityCases = React.useMemo(() => getPriorityCases(caseFiles, now), [caseFiles, now])
@@ -80,7 +100,10 @@ export default function MyDayPage() {
   }, [priorityCases, pendingConsultReadIds])
 
   return (
-    <div className="px-4 lg:px-6 space-y-6">
+    <div
+      className="px-4 lg:px-6 space-y-6"
+      onClickCapture={collapseSidebarFromMyDayContent}
+    >
       <Tabs defaultValue="critical-alerts" className="w-full">
         <TabsList className="!h-auto w-full grid grid-cols-3 gap-3 rounded-none border-0 bg-transparent p-0 shadow-none">
           <TabsTrigger
