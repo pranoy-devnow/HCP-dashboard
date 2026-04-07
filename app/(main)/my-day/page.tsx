@@ -25,6 +25,10 @@ import {
   getPriorityReason,
   getLocationLabel,
   formatAgeForMyDay,
+  formatAlertDeliveryChip,
+  formatAlertFeedingStatusChip,
+  formatAlertCSectionReasonChip,
+  isCSectionDelivery,
 } from "@/lib/my-day-helpers"
 import { getHoursSinceBirth } from "@/lib/case-file-detail-helpers"
 import { formatAgeLive } from "@/lib/time-since-birth"
@@ -44,11 +48,10 @@ export default function MyDayPage() {
   const readAlertIds = useAlertsReadIds()
   const pendingConsultReadIds = usePendingConsultReadIds()
 
-  const criticalAlertsAll = React.useMemo(
-    () => alerts.filter((a) => a.severity === "critical" || a.severity === "high"),
-    [alerts]
-  )
-  const criticalUnreadCount = React.useMemo(
+  /** All clinical alerts appear under Critical Alerts; every row uses red styling. */
+  const criticalAlertsAll = React.useMemo(() => alerts, [alerts])
+  /** Tab badge: alerts not yet opened / marked read (same idea as Pending Consults). */
+  const criticalAlertsUnreadCount = React.useMemo(
     () => criticalAlertsAll.filter((a) => !readAlertIds.has(a.id)).length,
     [criticalAlertsAll, readAlertIds]
   )
@@ -82,6 +85,7 @@ export default function MyDayPage() {
         <TabsList className="!h-auto w-full grid grid-cols-3 gap-3 rounded-none border-0 bg-transparent p-0 shadow-none">
           <TabsTrigger
             value="critical-alerts"
+            aria-label={`Critical alerts, ${criticalAlertsUnreadCount} unread`}
             className={cn(
               "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-left transition-all duration-200",
               "data-[state=active]:border-red-500/50 data-[state=active]:bg-red-50/40 data-[state=active]:shadow-md dark:data-[state=active]:bg-red-950/20",
@@ -93,10 +97,13 @@ export default function MyDayPage() {
               <AlertTriangle className="size-5" />
             </span>
             <span className="text-sm font-semibold text-foreground">Critical Alerts</span>
-            <span className="text-2xl font-bold tabular-nums text-foreground">{criticalUnreadCount}</span>
+            <span className="text-2xl font-bold tabular-nums text-foreground">
+              {criticalAlertsUnreadCount}
+            </span>
           </TabsTrigger>
           <TabsTrigger
             value="pending-consults"
+            aria-label={`Pending consults, ${pendingConsultsUnreadCount} unread`}
             className={cn(
               "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-left transition-all duration-200",
               "data-[state=active]:border-amber-500/50 data-[state=active]:bg-amber-50/40 data-[state=active]:shadow-md dark:data-[state=active]:bg-amber-950/20",
@@ -129,7 +136,7 @@ export default function MyDayPage() {
 
         <TabsContent value="critical-alerts" className="mt-4 outline-none">
           {criticalAlertsAll.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">No critical alerts.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">No alerts.</p>
           ) : (
             <div className="space-y-6">
               {criticalAlertsByDay.map(({ dayKey, alerts: dayAlerts }) => (
@@ -152,14 +159,43 @@ export default function MyDayPage() {
                     {dayAlerts.map((alert) => {
                       const isRead = readAlertIds.has(alert.id)
                       const caseFile = caseFiles.find((f) => f.id === alert.caseId)
+                      /** Fixed order: Gravida → method of feeding → sodium → delivery (last). */
+                      const deliveryBadge =
+                        caseFile?.deliveryType &&
+                        !isCSectionDelivery(caseFile.deliveryType)
+                          ? {
+                              label: formatAlertDeliveryChip(caseFile.deliveryType),
+                              key: "delivery",
+                            }
+                          : caseFile?.deliveryType &&
+                              isCSectionDelivery(caseFile.deliveryType) &&
+                              caseFile.reasonForCSection?.trim()
+                            ? {
+                                label: formatAlertCSectionReasonChip(
+                                  caseFile.reasonForCSection
+                                ),
+                                key: "c-section-reason",
+                              }
+                            : caseFile?.deliveryType &&
+                                isCSectionDelivery(caseFile.deliveryType) &&
+                                !caseFile.reasonForCSection?.trim()
+                              ? { label: "C-section", key: "c-section-only" }
+                              : null
                       const detailBadges = [
-                        caseFile?.gravida != null && { label: `Gravida: ${caseFile.gravida}`, key: "gravida" },
-                        caseFile?.deliveryType && { label: `Delivery type: ${caseFile.deliveryType}`, key: "delivery" },
-                        caseFile?.feedingStatus && { label: `Feeding status: ${caseFile.feedingStatus}`, key: "feeding-status" },
-                        caseFile?.sodiumLevel && { label: `Sodium level: ${caseFile.sodiumLevel}`, key: "sodium" },
-                        caseFile?.reasonForCSection && { label: `Reason for C-section: ${caseFile.reasonForCSection}`, key: "c-section" },
-                        caseFile?.feedingMethod && { label: `Feeding method: ${caseFile.feedingMethod}`, key: "feeding-method" },
-                      ].filter((b): b is { label: string; key: string } => Boolean(b && b.label)).slice(0, 5)
+                        caseFile?.gravida != null && {
+                          label: `Gravida: ${caseFile.gravida}`,
+                          key: "gravida",
+                        },
+                        caseFile?.feedingStatus && {
+                          label: formatAlertFeedingStatusChip(caseFile.feedingStatus),
+                          key: "feeding-status",
+                        },
+                        caseFile?.sodiumLevel && {
+                          label: `Sodium level: ${caseFile.sodiumLevel}`,
+                          key: "sodium",
+                        },
+                        deliveryBadge,
+                      ].filter((b): b is { label: string; key: string } => Boolean(b && b.label))
                       return (
                         <li key={alert.id}>
                           <Link
@@ -168,21 +204,21 @@ export default function MyDayPage() {
                             aria-label={
                               isRead
                                 ? `${alert.patientName}, opened. ${alert.message}`
-                                : `${alert.patientName}, unread critical alert. ${alert.message}`
+                                : `${alert.patientName}, unread alert. ${alert.message}`
                             }
                             className={cn(
                               "group flex items-center gap-3 rounded-lg border-l-4 p-4 transition-colors",
                               "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                               isRead
                                 ? "border-l-transparent border border-border bg-muted/25 hover:bg-muted/45 dark:bg-muted/20 dark:hover:bg-muted/35"
-                                : "border-l-red-500 bg-red-50/50 dark:bg-red-950/30 hover:bg-red-50 dark:hover:bg-red-950/40"
+                                : "border border-red-200/80 border-l-red-600 bg-red-50/70 hover:bg-red-100/80 dark:border-red-900/60 dark:border-l-red-500 dark:bg-red-950/40 dark:hover:bg-red-950/50"
                             )}
                           >
                             <div className="flex min-w-0 flex-1 flex-col gap-2">
                               <p
                                 className={cn(
                                   "text-sm font-medium",
-                                  isRead ? "text-muted-foreground" : "text-foreground"
+                                  isRead ? "text-muted-foreground" : "text-red-950 dark:text-red-100"
                                 )}
                               >
                                 {alert.patientName}
@@ -190,10 +226,10 @@ export default function MyDayPage() {
                               <p
                                 className={cn(
                                   "text-sm leading-snug",
-                                  isRead ? "text-muted-foreground" : "text-foreground"
+                                  isRead ? "text-muted-foreground" : "text-red-950 dark:text-red-100/95"
                                 )}
                               >
-                                <span className="sr-only">Critical reason: </span>
+                                <span className="sr-only">Alert: </span>
                                 {alert.message}
                               </p>
                               <div className="flex flex-wrap items-center gap-2">
@@ -201,7 +237,12 @@ export default function MyDayPage() {
                                   <Badge
                                     key={key}
                                     variant="secondary"
-                                    className="shrink-0 border-border bg-muted/80 text-xs text-muted-foreground"
+                                    className={cn(
+                                      "shrink-0 text-xs",
+                                      isRead
+                                        ? "border-border bg-muted/80 text-muted-foreground"
+                                        : "border border-red-200/60 bg-red-100/50 text-red-900/85 dark:border-red-800/50 dark:bg-red-950/40 dark:text-red-200/90"
+                                    )}
                                   >
                                     {label}
                                   </Badge>
@@ -209,7 +250,12 @@ export default function MyDayPage() {
                               </div>
                             </div>
                             <ChevronRight
-                              className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
+                              className={cn(
+                                "size-5 shrink-0 transition-transform group-hover:translate-x-0.5",
+                                isRead
+                                  ? "text-muted-foreground group-hover:text-foreground"
+                                  : "text-red-600/70 group-hover:text-red-700 dark:text-red-400/80 dark:group-hover:text-red-300"
+                              )}
                               aria-hidden
                             />
                           </Link>

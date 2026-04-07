@@ -8,8 +8,8 @@ export function getBirthDate(dateOfBirth: string, birthTime: string): Date | nul
 }
 
 /**
- * Live format: "Xh Ym Zs" (or "24h+"). Uses demo cycle (0–24h repeat) when >= 24h.
- * Use for list and detail so age stays in sync.
+ * Live format: "Xh Ym" (or "24h+"). No seconds — avoids noisy per-second UI updates.
+ * Uses demo cycle (0–24h repeat) when >= 24h.
  */
 export function formatAgeLive(dateOfBirth: string, birthTime: string, now: Date): string {
   const birth = getBirthDate(dateOfBirth, birthTime)
@@ -18,7 +18,6 @@ export function formatAgeLive(dateOfBirth: string, birthTime: string, now: Date)
   if (totalSeconds >= 24 * 3600) totalSeconds = totalSeconds % (24 * 3600)
   const h = Math.floor(totalSeconds / 3600)
   const m = Math.floor((totalSeconds % 3600) / 60)
-  const s = Math.floor(totalSeconds % 60)
   if (h >= 24) return "24h+"
-  return `${h}h ${m}m ${s}s`
+  return `${h}h ${m}m`
 }

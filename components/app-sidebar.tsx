@@ -6,9 +6,15 @@ import {
   IconInnerShadowTop,
   IconCalendarEvent,
   IconLayoutGrid,
+  IconRefresh,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
+import {
+  resetAlertsReadState,
+  MY_DAY_DEMO_PENDING_UNREAD,
+  resetPendingConsultsToUnreadCount,
+} from "@/services"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -46,6 +52,11 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const handleResetNotifications = () => {
+    resetAlertsReadState()
+    resetPendingConsultsToUnreadCount(MY_DAY_DEMO_PENDING_UNREAD)
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -67,6 +78,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              type="button"
+              variant="outline"
+              tooltip="Reset My Day notifications"
+              aria-label="Reset My Day demo: mark all alerts unread and leave two pending consults unread"
+              onClick={handleResetNotifications}
+            >
+              <IconRefresh />
+              <span className="truncate group-data-[collapsible=icon]:hidden">Reset</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>

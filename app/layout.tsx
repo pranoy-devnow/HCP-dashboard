@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const baseUrl =
@@ -34,6 +35,7 @@ export default function RootLayout({
         }}
       >
         {children}
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

@@ -12,6 +12,9 @@ export const DEFAULT_USER_IMAGE = "/Images/user.png"
 /** Hero image used on login page and in metadata. */
 export const LOGIN_HERO_IMAGE = "/Images/login-hero.jpg"
 
+/** Primary route after sign-in from the login screen (not Case Files). */
+export const POST_LOGIN_REDIRECT_PATH = "/my-day" as const
+
 /** Display name for the current user in demo/log (e.g. completion log "by"). */
 export const CURRENT_USER_NAME = "Jake"
 

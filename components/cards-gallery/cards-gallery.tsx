@@ -13,6 +13,7 @@ import {
   AtRiskConditionsCard,
   UrgentActionCard,
   MilkVolumeAlertCard,
+  MedelaFamilyConnectCard,
   DataCard,
   MomDataCard,
 } from "@/components/case-file-detail/cards"
@@ -20,6 +21,7 @@ import type {
   AtRiskConditionsCardData,
   UrgentActionCardData,
   MilkVolumeAlertCardData,
+  MedelaFamilyConnectCardData,
 } from "@/types/case-file-detail-cards"
 import { cn } from "@/lib/utils"
 
@@ -41,6 +43,12 @@ const SHOWCASE_MILK_VOLUME: MilkVolumeAlertCardData = {
   title: "Milk Volume",
   message: "Daily milk volume dropped by 15% over past 3 days.",
   actionLabel: "Take action",
+}
+
+const SHOWCASE_MEDELA_FAMILY: MedelaFamilyConnectCardData = {
+  title: "Connect to Medela Family",
+  subtitle: "Sync with the official Medela app.",
+  actionLabel: "Connect",
 }
 
 type GallerySectionVariant = "alerts" | "infant" | "mom"
@@ -72,6 +80,10 @@ const galleryItemHover = cn(
 const galleryHoverAlertsUrgent = cn(galleryItemHover, "hover:ring-red-500/30 focus-within:ring-red-500/25")
 const galleryHoverAlertsAtRisk = cn(galleryItemHover, "hover:ring-amber-500/30 focus-within:ring-amber-500/25")
 const galleryHoverAlertsMilk = cn(galleryItemHover, "hover:ring-orange-500/30 focus-within:ring-orange-500/25")
+const galleryHoverAlertsMedelaFamily = cn(
+  galleryItemHover,
+  "hover:ring-sky-500/30 focus-within:ring-sky-500/25"
+)
 const galleryHoverInfant = cn(galleryItemHover, "hover:ring-emerald-500/30 focus-within:ring-emerald-500/25")
 const galleryHoverMom = cn(galleryItemHover, "hover:ring-violet-500/30 focus-within:ring-violet-500/25")
 
@@ -163,7 +175,7 @@ export function CardsGallery() {
         eyebrow="Section 01 — Alerts"
         title="Alerts"
       >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <UrgentActionCard
             data={urgentData}
             onChecklistClick={() => {}}
@@ -174,6 +186,11 @@ export function CardsGallery() {
             data={SHOWCASE_MILK_VOLUME}
             onActionClick={() => {}}
             className={galleryHoverAlertsMilk}
+          />
+          <MedelaFamilyConnectCard
+            data={SHOWCASE_MEDELA_FAMILY}
+            onActionClick={() => {}}
+            className={galleryHoverAlertsMedelaFamily}
           />
         </div>
       </GallerySection>

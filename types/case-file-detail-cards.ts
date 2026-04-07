@@ -33,6 +33,13 @@ export interface MilkVolumeAlertCardData {
   actionLabel: string
 }
 
+/** Prompt to connect the mother to the Medela consumer app (Family). */
+export interface MedelaFamilyConnectCardData {
+  title: string
+  subtitle: string
+  actionLabel: string
+}
+
 export type MetricIconKey = "droplets" | "clock"
 
 export interface MetricCardData {

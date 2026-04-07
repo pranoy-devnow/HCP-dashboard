@@ -59,3 +59,12 @@ export function saveAlertsReadIds(ids: Set<string>): void {
     console.error("[alertsService] saveAlertsReadIds failed:", err)
   }
 }
+
+/** Clear read state so every alert is unread again (demo / QA reset). */
+export function resetAlertsReadState(): void {
+  try {
+    libSaveReadIds(new Set())
+  } catch (err) {
+    console.error("[alertsService] resetAlertsReadState failed:", err)
+  }
+}

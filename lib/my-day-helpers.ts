@@ -80,3 +80,34 @@ export function getPriorityReason(
 export function getLocationLabel(file: CaseFileRecord): string {
   return `Room ${file.location.room}, Bed ${file.location.bed}`
 }
+
+/** True when delivery is cesarean — use reason chip instead of a duplicate “C-section delivery” chip. */
+export function isCSectionDelivery(deliveryType: string): boolean {
+  return deliveryType.trim().toLowerCase() === "c-section"
+}
+
+/** Critical alert chip: e.g. "C-section delivery", "Vaginal delivery". */
+export function formatAlertDeliveryChip(deliveryType: string): string {
+  const t = deliveryType.trim()
+  if (!t) return ""
+  if (/delivery$/i.test(t)) return t
+  return `${t} delivery`
+}
+
+/**
+ * Critical alert chip for feeding mode — short labels (e.g. "Pumping", "breastfeeding").
+ */
+export function formatAlertFeedingStatusChip(feedingStatus: string): string {
+  const key = feedingStatus.trim().toLowerCase()
+  if (key === "breastfeeding") return "breastfeeding"
+  if (key === "pumping") return "Pumping"
+  if (key === "mixed") return "Mixed"
+  return feedingStatus.trim()
+}
+
+/** Critical alert chip: short but clearly C-section context, e.g. "C-section — Placenta previa". */
+export function formatAlertCSectionReasonChip(reasonForCSection: string): string {
+  const r = reasonForCSection.trim()
+  if (!r) return ""
+  return `C-section — ${r}`
+}

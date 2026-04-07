@@ -14,9 +14,9 @@ import type { Note, CompletionEntry } from "@/types/case-files"
 import {
   LogSheet,
   DetailModal,
-  MotherModalContent,
   BabyModalContent,
   PumpingSessionsSection,
+  Pp1ConsultChecklistModal,
   type PumpingSessionsTab,
 } from "@/components/case-file-detail"
 import {
@@ -33,6 +33,7 @@ import {
 import { getMomDataItems } from "@/lib/mom-data-cards-data"
 import { mapInfantDataToCardItems } from "@/lib/infant-data-icons"
 import { getCaseFileBackNavigation } from "@/lib/case-file-back-navigation"
+import { cn } from "@/lib/utils"
 
 const MOM_DATA_KNOW_MORE_SINGLE_TAB: Record<string, PumpingSessionsTab> = {
   "milk-trend-volume": "trend",
@@ -62,8 +63,9 @@ export default function CaseFileDetailPage() {
   )
   const [isLogOpen, setIsLogOpen] = React.useState(false)
   const [noteContext, setNoteContext] = React.useState<{ id: string; label: string } | null>(null)
-  const [detailModal, setDetailModal] = React.useState<"mother" | "baby" | null>(null)
+  const [detailModal, setDetailModal] = React.useState<"baby" | null>(null)
   const [momDataKnowMoreId, setMomDataKnowMoreId] = React.useState<string | null>(null)
+  const [pp1ChecklistOpen, setPp1ChecklistOpen] = React.useState(false)
 
   const mockPatient = getCaseFileById(patientId)
 
@@ -177,14 +179,7 @@ export default function CaseFileDetailPage() {
             <div className="flex min-w-0 flex-1 flex-col gap-3 lg:pl-6">
               <div className="flex items-start gap-4">
                 <div className="min-w-0 space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => setDetailModal("mother")}
-                    className="inline-flex items-center gap-1.5 text-left cursor-pointer hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-sm"
-                  >
-                    <h2 className="text-base font-semibold">{mockPatient.motherName}</h2>
-                    <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                  </button>
+                  <h2 className="text-base font-semibold">{mockPatient.motherName}</h2>
                   <p className="text-sm text-muted-foreground">
                     {mockPatient.motherAgeYears} years old · Baby: {mockPatient.motherLastName}
                   </p>
@@ -192,7 +187,14 @@ export default function CaseFileDetailPage() {
                     <Badge variant="secondary" className="text-xs font-normal">
                       Gravida {mockPatient.gravida ?? "—"}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs font-normal">
+                    <Badge
+                      variant={mockPatient.riskFactor ? "outline" : "secondary"}
+                      className={cn(
+                        "text-xs font-normal",
+                        mockPatient.riskFactor &&
+                          "border-red-500/50 bg-red-50 text-red-800 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200"
+                      )}
+                    >
                       {mockPatient.riskFactor ?? "—"}
                     </Badge>
                   </div>
@@ -214,7 +216,7 @@ export default function CaseFileDetailPage() {
           {urgentActionData != null && (
             <UrgentActionCard
               data={urgentActionData}
-              onChecklistClick={() => handleOpenLog(null)}
+              onChecklistClick={() => setPp1ChecklistOpen(true)}
             />
           )}
           {atRiskData != null && <AtRiskConditionsCard data={atRiskData} />}
@@ -229,12 +231,6 @@ export default function CaseFileDetailPage() {
       <Separator className="my-6" />
 
       <MomDataSection items={momDataItems} onKnowMore={(id) => setMomDataKnowMoreId(id)} />
-
-      {detailModal === "mother" && (
-        <DetailModal title={mockPatient.motherName} onClose={() => setDetailModal(null)} dialogClassName="max-w-2xl" sessionCount={hourlyMilkVolumeData.length}>
-          <MotherModalContent />
-        </DetailModal>
-      )}
 
       {detailModal === "baby" && (
         <DetailModal title={`${mockPatient.motherLastName}, ${mockPatient.babyGender}`} onClose={() => setDetailModal(null)} dialogClassName="max-w-2xl">
@@ -261,6 +257,11 @@ export default function CaseFileDetailPage() {
         onAddNote={handleAddNote}
         isOpen={isLogOpen}
         onClose={() => setIsLogOpen(false)}
+      />
+
+      <Pp1ConsultChecklistModal
+        open={pp1ChecklistOpen}
+        onOpenChange={setPp1ChecklistOpen}
       />
     </div>
   )

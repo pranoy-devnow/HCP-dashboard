@@ -14,7 +14,8 @@ export default function CaseFilesListPage() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [now, setNow] = React.useState(() => new Date())
   React.useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000)
+    // Minute-level age badge; no per-second tick
+    const t = setInterval(() => setNow(new Date()), 60_000)
     return () => clearInterval(t)
   }, [])
 

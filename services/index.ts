@@ -21,8 +21,14 @@ export {
   loadAlertsReadIds,
   saveAlertsReadIds,
   markAlertRead,
+  resetAlertsReadState,
 } from "./alertsService"
 
-export { loadPendingConsultReadIds, markPendingConsultRead } from "./pendingConsultReadService"
+export {
+  loadPendingConsultReadIds,
+  markPendingConsultRead,
+  MY_DAY_DEMO_PENDING_UNREAD,
+  resetPendingConsultsToUnreadCount,
+} from "./pendingConsultReadService"
 
 export { getApiBaseUrl, apiRequest } from "./api"
