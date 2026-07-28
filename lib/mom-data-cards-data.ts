@@ -18,7 +18,7 @@ export function getMomDataItems(patient: CaseFileRecord): MomDataCardItem[] {
       id: "pumping-avg-per-day",
       label: "Pumping frequency: Average per day",
       value: String(pumping.averagePerDay),
-      subInfo: `Target: ${pumping.target}`,
+      expectedFrequency: pumping.target,
       iconKey: "clock",
       showKnowMore: false,
     },

@@ -17,6 +17,7 @@ import {
   BabyModalContent,
   PumpingSessionsSection,
   Pp1ConsultChecklistModal,
+  ClinicalNotesSection,
   type PumpingSessionsTab,
 } from "@/components/case-file-detail"
 import {
@@ -222,6 +223,10 @@ export default function CaseFileDetailPage() {
           {atRiskData != null && <AtRiskConditionsCard data={atRiskData} />}
         </div>
       </section>
+
+      <Separator className="my-6" />
+
+      <ClinicalNotesSection caseId={mockPatient.id} />
 
       <Separator className="my-6" />
 

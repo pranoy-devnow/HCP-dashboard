@@ -74,6 +74,8 @@ export interface MomDataCardItem {
   label: string
   value: string
   subInfo?: string
+  /** Shown at the bottom of the card (same slot as “Know more”), e.g. target range “5-8”. */
+  expectedFrequency?: string
   trend?: "up" | "down"
   iconKey: MomDataCardIconKey
   /** When false, hides the “Know more” action. Defaults to true when omitted. */

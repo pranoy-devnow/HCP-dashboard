@@ -31,4 +31,6 @@ export {
   resetPendingConsultsToUnreadCount,
 } from "./pendingConsultReadService"
 
+export { getClinicalNotesByCaseId } from "./clinicalNotesService"
+
 export { getApiBaseUrl, apiRequest } from "./api"

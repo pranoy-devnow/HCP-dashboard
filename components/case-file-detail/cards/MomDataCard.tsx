@@ -37,10 +37,15 @@ export interface MomDataCardProps {
   className?: string
 }
 
-/** Single card for Mom Data section: icon, label, value/trend, and optional Know more button. */
+const BOTTOM_BAR_CLASS =
+  "mt-auto flex h-8 w-full shrink-0 items-center justify-between gap-2 rounded-md border border-violet-300/80 bg-violet-50/90 px-3 text-xs font-semibold text-violet-900 shadow-sm dark:border-violet-600/50 dark:bg-violet-950/40 dark:text-violet-100"
+
+/** Single card for Mom Data section: icon, label, value/trend, and optional bottom action/info. */
 export function MomDataCard({ item, onKnowMore, className }: MomDataCardProps) {
   const Icon = ICONS[item.iconKey]
   const showKnowMoreButton = onKnowMore != null
+  const showExpectedFrequency = item.expectedFrequency != null
+  const hasBottomSlot = showKnowMoreButton || showExpectedFrequency
   return (
     <div
       className={cn(
@@ -48,11 +53,11 @@ export function MomDataCard({ item, onKnowMore, className }: MomDataCardProps) {
         className
       )}
     >
-      {/* flex-1 only when a bottom button exists so “Know more” rows stay aligned */}
+      {/* flex-1 only when a bottom slot exists so rows stay aligned */}
       <div
         className={cn(
           "flex min-h-0 flex-col gap-1.5",
-          showKnowMoreButton && "flex-1"
+          hasBottomSlot && "flex-1"
         )}
       >
         <div
@@ -79,6 +84,12 @@ export function MomDataCard({ item, onKnowMore, className }: MomDataCardProps) {
           )}
         </div>
       </div>
+      {showExpectedFrequency && (
+        <div className={BOTTOM_BAR_CLASS}>
+          <span>Expected frequency</span>
+          <span>{item.expectedFrequency}</span>
+        </div>
+      )}
       {showKnowMoreButton && (
         <Button
           type="button"
