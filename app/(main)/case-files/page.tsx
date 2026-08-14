@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input"
 import { FolderOpen, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { caseFiles, babyTitle } from "@/lib/case-files-data"
+import { getCaseFiles, getBabyTitle } from "@/services/caseFilesService"
 import { formatAgeLive } from "@/lib/time-since-birth"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 
 export default function CaseFilesListPage() {
   const router = useRouter()
@@ -19,16 +20,22 @@ export default function CaseFilesListPage() {
     return () => clearInterval(t)
   }, [])
 
+  const { data: dashboard, isLoading, error } = useDashboardData()
+  const caseFiles = React.useMemo(
+    () => (dashboard ? getCaseFiles(dashboard) : []),
+    [dashboard]
+  )
+
   const filteredCaseFiles = React.useMemo(() => {
     if (!searchQuery.trim()) return caseFiles
     const query = searchQuery.toLowerCase()
     return caseFiles.filter(
       (file) =>
-        babyTitle(file).toLowerCase().includes(query) ||
+        getBabyTitle(file).toLowerCase().includes(query) ||
         file.motherName.toLowerCase().includes(query) ||
         `${file.location.room} ${file.location.bed}`.toLowerCase().includes(query)
     )
-  }, [searchQuery])
+  }, [searchQuery, caseFiles])
 
   return (
     <div className="px-4 lg:px-6">
@@ -45,10 +52,15 @@ export default function CaseFilesListPage() {
         </div>
       </div>
 
+      {isLoading && (
+        <p className="mb-4 text-sm text-muted-foreground">Loading live case files…</p>
+      )}
+      {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCaseFiles.length === 0 ? (
             <div className="col-span-full text-center py-12 text-muted-foreground">
-              No case files found matching your search.
+              {isLoading ? "Loading case files…" : "No case files found matching your search."}
             </div>
           ) : (
             filteredCaseFiles.map((file) => (
@@ -67,7 +79,7 @@ export default function CaseFilesListPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                      {babyTitle(file)}
+                      {getBabyTitle(file)}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Mother: {file.motherName} · Room {file.location.room}, Bed {file.location.bed}

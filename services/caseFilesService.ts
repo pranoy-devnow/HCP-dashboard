@@ -9,10 +9,12 @@ import {
   getPatientData as libGetPatientData,
   babyTitle as libBabyTitle,
 } from "@/lib/case-files-data"
+import type { ParsedDashboardData } from "@/lib/dashboard-data-parser"
 
-/** Return all case files. For now uses in-memory data; later: GET /api/case-files */
-export function getCaseFiles(): CaseFileRecord[] {
+/** Return all case files. Prefers live dashboard data when provided. */
+export function getCaseFiles(dashboard?: ParsedDashboardData | null): CaseFileRecord[] {
   try {
+    if (dashboard) return dashboard.caseFiles
     return caseFiles
   } catch (err) {
     console.error("[caseFilesService] getCaseFiles failed:", err)
@@ -20,9 +22,15 @@ export function getCaseFiles(): CaseFileRecord[] {
   }
 }
 
-/** Return a single case file by id, or null. For now uses in-memory data; later: GET /api/case-files/:id */
-export function getCaseFileById(patientId: string): CaseFileRecord | null {
+/** Return a single case file by id, or null. Prefers live dashboard data when provided. */
+export function getCaseFileById(
+  patientId: string,
+  dashboard?: ParsedDashboardData | null
+): CaseFileRecord | null {
   try {
+    if (dashboard) {
+      return dashboard.caseFiles.find((file) => file.id === patientId) ?? null
+    }
     return libGetPatientData(patientId)
   } catch (err) {
     console.error("[caseFilesService] getCaseFileById failed:", patientId, err)

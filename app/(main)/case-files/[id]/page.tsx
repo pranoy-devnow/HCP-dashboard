@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ArrowUpRight, MapPin, Users2 } from "lucide-react"
 import { getCaseFileById } from "@/services/caseFilesService"
-import { hourlyMilkVolumeData } from "@/lib/case-files-chart-data"
 import { getMockLogData } from "@/lib/case-files-timeline-data"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
+import { getParsedPatientExtras } from "@/lib/dashboard-data-parser"
 import type { Note, CompletionEntry } from "@/types/case-files"
 import {
   LogSheet,
@@ -56,6 +57,9 @@ export default function CaseFileDetailPage() {
   const patientId = pathname.split("/").pop() ?? ""
   const isMockProfile = patientId === "mock"
 
+  const { data: dashboard, isLoading, error } = useDashboardData()
+  const extras = getParsedPatientExtras(dashboard, patientId)
+
   const [patientNotes, setPatientNotes] = React.useState<Note[]>(() =>
     isMockProfile ? getMockLogData().patientNotes : []
   )
@@ -68,7 +72,20 @@ export default function CaseFileDetailPage() {
   const [momDataKnowMoreId, setMomDataKnowMoreId] = React.useState<string | null>(null)
   const [pp1ChecklistOpen, setPp1ChecklistOpen] = React.useState(false)
 
-  const mockPatient = getCaseFileById(patientId)
+  const mockPatient = dashboard
+    ? getCaseFileById(patientId, dashboard)
+    : isLoading
+      ? null
+      : getCaseFileById(patientId)
+
+  // When live extras arrive, seed notes and completion log from the API.
+  const extrasHydratedRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!extras || extrasHydratedRef.current === patientId) return
+    extrasHydratedRef.current = patientId
+    setPatientNotes(extras.patientNotes)
+    setCompletionLog(extras.completionLog)
+  }, [extras, patientId])
 
   // When navigating to the "mock" demo profile, load sample log data for the Log sheet.
   const prevPatientIdRef = React.useRef(patientId)
@@ -80,6 +97,21 @@ export default function CaseFileDetailPage() {
     }
     prevPatientIdRef.current = patientId
   }, [patientId])
+
+  const atRiskData = extras?.atRisk ?? (mockPatient ? getAtRiskConditionsCardData(mockPatient) : null)
+  const urgentActionData =
+    extras?.urgentAction ?? (mockPatient ? getUrgentActionCardData(mockPatient) : null)
+  const infantDataItems = React.useMemo(
+    () =>
+      mapInfantDataToCardItems(
+        extras?.infantItems ?? (mockPatient ? getInfantDataItems(mockPatient) : [])
+      ),
+    [extras, mockPatient]
+  )
+  const momDataItems = React.useMemo(
+    () => extras?.momItems ?? (mockPatient ? getMomDataItems(mockPatient) : []),
+    [extras, mockPatient]
+  )
 
   const handleAddNote = (text: string, source: string) => {
     const newNote: Note = { id: Date.now().toString(), text, timestamp: new Date(), source }
@@ -100,21 +132,18 @@ export default function CaseFileDetailPage() {
         </Button>
         <Card className="mb-6">
           <CardContent className="py-12 text-center text-muted-foreground">
-            <p className="font-medium">Case file not found</p>
-            <p className="text-sm mt-1">No patient record for this ID. It may have been removed or the link is incorrect.</p>
+            <p className="font-medium">{isLoading ? "Loading case file…" : "Case file not found"}</p>
+            <p className="text-sm mt-1">
+              {error ??
+                (isLoading
+                  ? "Fetching live dashboard data."
+                  : "No patient record for this ID. It may have been removed or the link is incorrect.")}
+            </p>
           </CardContent>
         </Card>
       </div>
     )
   }
-
-  const atRiskData = getAtRiskConditionsCardData(mockPatient)
-  const urgentActionData = getUrgentActionCardData(mockPatient)
-  const infantDataItems = React.useMemo(
-    () => mapInfantDataToCardItems(getInfantDataItems(mockPatient)),
-    [patientId]
-  )
-  const momDataItems = React.useMemo(() => getMomDataItems(mockPatient), [patientId])
 
   return (
     <div className="px-4 lg:px-6">
@@ -226,7 +255,7 @@ export default function CaseFileDetailPage() {
 
       <Separator className="my-6" />
 
-      <ClinicalNotesSection caseId={mockPatient.id} />
+      <ClinicalNotesSection caseId={mockPatient.id} categories={extras?.clinicalNotes} />
 
       <Separator className="my-6" />
 
@@ -251,6 +280,9 @@ export default function CaseFileDetailPage() {
         >
           <PumpingSessionsSection
             singleTab={MOM_DATA_KNOW_MORE_SINGLE_TAB[momDataKnowMoreId] ?? "recent"}
+            sessions={extras?.pumpingSessions}
+            hourlyVolume={extras?.hourlyVolume}
+            leftVsRight={extras?.leftVsRight}
           />
         </DetailModal>
       )}

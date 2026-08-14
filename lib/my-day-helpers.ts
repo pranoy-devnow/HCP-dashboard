@@ -1,20 +1,22 @@
 import type { CaseFileRecord } from "@/types/case-files"
 import { getHoursSinceBirth } from "@/lib/case-file-detail-helpers"
 
-/** Critical window: first 6 hours post-delivery. */
-const CRITICAL_WINDOW_HOURS = 6
+/** Critical window: first 6 hours post-delivery unless the API config overrides it. */
+const DEFAULT_CRITICAL_WINDOW_HOURS = 6
 
 /**
- * Returns case files that are within the critical first 6 hours post-delivery.
- * Used to highlight priority patients on My Day.
+ * Returns case files that are within the critical first hours post-delivery,
+ * or already marked Critical Window by the backend.
  */
 export function getCriticalWindowCases(
   caseFiles: CaseFileRecord[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  criticalWindowHours: number = DEFAULT_CRITICAL_WINDOW_HOURS
 ): CaseFileRecord[] {
   return caseFiles.filter((file) => {
+    if (file.status === "Critical Window") return true
     const hours = getHoursSinceBirth(file.dateOfBirth, file.birthTime, now)
-    return hours >= 0 && hours < CRITICAL_WINDOW_HOURS
+    return hours >= 0 && hours < criticalWindowHours
   })
 }
 
@@ -23,9 +25,10 @@ export function getCriticalWindowCases(
  */
 export function getPriorityCases(
   caseFiles: CaseFileRecord[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  criticalWindowHours: number = DEFAULT_CRITICAL_WINDOW_HOURS
 ): CaseFileRecord[] {
-  const critical = getCriticalWindowCases(caseFiles, now)
+  const critical = getCriticalWindowCases(caseFiles, now, criticalWindowHours)
   const highPriority = caseFiles.filter(
     (f) =>
       (f.status === "High priority" || f.status === "Needs Follow-up") &&
@@ -64,7 +67,7 @@ export function getPriorityReason(
   file: CaseFileRecord,
   hoursSinceBirth: number
 ): string {
-  if (hoursSinceBirth >= 0 && hoursSinceBirth < CRITICAL_WINDOW_HOURS) {
+  if (hoursSinceBirth >= 0 && hoursSinceBirth < DEFAULT_CRITICAL_WINDOW_HOURS) {
     return `${Math.floor(hoursSinceBirth)} hours post-delivery – Critical window for first pump.`
   }
   if (file.status === "Needs Follow-up") {

@@ -9,10 +9,12 @@ import {
   loadAlertsReadIds as libLoadReadIds,
   saveAlertsReadIds as libSaveReadIds,
 } from "@/lib/alerts-data"
+import type { ParsedDashboardData } from "@/lib/dashboard-data-parser"
 
-/** Return all alerts. For now uses in-memory data; later: GET /api/alerts */
-export function getAlerts(): Alert[] {
+/** Return all alerts. Prefers live dashboard data when provided. */
+export function getAlerts(dashboard?: ParsedDashboardData | null): Alert[] {
   try {
+    if (dashboard) return dashboard.alerts
     return libAlerts
   } catch (err) {
     console.error("[alertsService] getAlerts failed:", err)
@@ -21,9 +23,13 @@ export function getAlerts(): Alert[] {
 }
 
 /** Return alerts for a single case file. */
-export function getAlertsByCaseId(caseId: string): Alert[] {
+export function getAlertsByCaseId(
+  caseId: string,
+  dashboard?: ParsedDashboardData | null
+): Alert[] {
   try {
-    return libAlerts.filter((a) => a.caseId === caseId)
+    const source = dashboard?.alerts ?? libAlerts
+    return source.filter((a) => a.caseId === caseId)
   } catch (err) {
     console.error("[alertsService] getAlertsByCaseId failed:", caseId, err)
     return []

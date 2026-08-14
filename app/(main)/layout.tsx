@@ -3,6 +3,7 @@
 import * as React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
+import { DashboardDataProvider } from "@/hooks/use-dashboard-data"
 import {
   SidebarInset,
   SidebarProvider,
@@ -30,7 +31,7 @@ export default function MainLayout({
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              {children}
+              <DashboardDataProvider>{children}</DashboardDataProvider>
             </div>
           </div>
         </div>

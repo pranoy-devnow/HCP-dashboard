@@ -33,4 +33,6 @@ export {
 
 export { getClinicalNotesByCaseId } from "./clinicalNotesService"
 
+export { fetchDashboardData, getParsedDashboardData } from "./dashboardDataService"
+
 export { getApiBaseUrl, apiRequest } from "./api"

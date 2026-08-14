@@ -14,3 +14,5 @@ export { TIMELINE_SECTIONS } from "./case-files"
 export type { SessionUser } from "./session"
 
 export type { AlertSeverity, AlertType, Alert } from "./alerts"
+
+export type { DashboardApiResponse, DashboardApiConfig } from "./dashboard-api"

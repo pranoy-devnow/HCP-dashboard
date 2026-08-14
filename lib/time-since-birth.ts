@@ -1,8 +1,18 @@
-/** Parse dateOfBirth (MM/DD/YYYY) + birthTime (HH:mm) into a Date. */
+/** Parse dateOfBirth (MM/DD/YYYY or YYYY-MM-DD) + birthTime (HH:mm) into a Date. */
 export function getBirthDate(dateOfBirth: string, birthTime: string): Date | null {
-  const [mm, dd, yyyy] = dateOfBirth.split("/").map(Number)
   const [h, m] = birthTime.split(":").map(Number)
-  if ([mm, dd, yyyy, h, m].some((n) => Number.isNaN(n))) return null
+  if ([h, m].some((n) => Number.isNaN(n))) return null
+
+  let yyyy: number
+  let mm: number
+  let dd: number
+  if (dateOfBirth.includes("-")) {
+    ;[yyyy, mm, dd] = dateOfBirth.split("-").map(Number)
+  } else {
+    ;[mm, dd, yyyy] = dateOfBirth.split("/").map(Number)
+  }
+  if ([mm, dd, yyyy].some((n) => Number.isNaN(n))) return null
+
   const d = new Date(yyyy, mm - 1, dd, h, m, 0, 0)
   return Number.isNaN(d.getTime()) ? null : d
 }

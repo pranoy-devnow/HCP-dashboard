@@ -17,8 +17,17 @@ function formatDob(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
-/** Format lastUpdated (YYYY-MM-DD) to "Mon D, HH:MM AM/PM" or similar. */
+/** Format lastUpdated (YYYY-MM-DD or ISO datetime) for the header card. */
 function formatLastSync(lastUpdated: string): string {
+  const iso = new Date(lastUpdated)
+  if (!Number.isNaN(iso.getTime()) && lastUpdated.includes("T")) {
+    return iso.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
+  }
   const [y, m, d] = lastUpdated.split("-").map(Number)
   if ([y, m, d].some(Number.isNaN)) return lastUpdated
   const date = new Date(y, m - 1, d, 11, 30)

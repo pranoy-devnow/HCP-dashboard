@@ -27,14 +27,19 @@ const CATEGORY_ICONS: Record<
 
 export interface ClinicalNotesSectionProps {
   caseId: string
+  categories?: ClinicalNoteCategory[]
   className?: string
 }
 
 /** Clinical Notes section: Interventions, Follow-up, Recommendations — each opens a modal. */
-export function ClinicalNotesSection({ caseId, className }: ClinicalNotesSectionProps) {
+export function ClinicalNotesSection({
+  caseId,
+  categories: categoriesProp,
+  className,
+}: ClinicalNotesSectionProps) {
   const categories = React.useMemo(
-    () => getClinicalNotesByCaseId(caseId),
-    [caseId]
+    () => categoriesProp ?? getClinicalNotesByCaseId(caseId),
+    [caseId, categoriesProp]
   )
   const [activeCategory, setActiveCategory] =
     React.useState<ClinicalNoteCategory | null>(null)

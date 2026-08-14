@@ -6,6 +6,11 @@
 /** Fallback base URL when VERCEL_URL and NEXT_PUBLIC_APP_URL are not set (e.g. local dev). */
 export const FALLBACK_APP_URL = "http://localhost:3000"
 
+/** Live dashboard fixture used when NEXT_PUBLIC_DASHBOARD_DATA_URL is unset. */
+export const DASHBOARD_DATA_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_DATA_URL ??
+  "https://vu20f120dg.execute-api.eu-west-1.amazonaws.com/v1/dashboard-data"
+
 /** Default avatar/image when user has no profile image. */
 export const DEFAULT_USER_IMAGE = "/Images/user.png"
 

@@ -15,12 +15,13 @@ import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
 import { TrendingUp, Scale, BarChart3, Calendar, AlertCircle, Activity, MessageSquare } from "lucide-react"
 import { getVolumeBarColor } from "@/lib/case-file-detail-helpers"
 import {
-  hourlyMilkVolumeData,
-  leftVsRightData,
+  hourlyMilkVolumeData as fallbackHourlyMilkVolumeData,
+  leftVsRightData as fallbackLeftVsRightData,
   hourlyChartConfig,
   leftRightChartConfig,
 } from "@/lib/case-files-chart-data"
 import { getRecentPumpingSessions } from "@/lib/pumping-sessions-data"
+import type { HourlyVolumePoint, LeftRightPoint } from "@/lib/dashboard-data-parser"
 import type { PumpingSession } from "@/types/pumping-sessions"
 import { cn } from "@/lib/utils"
 
@@ -31,22 +32,35 @@ export interface PumpingSessionsSectionProps {
    * When set, hides the tab bar and renders only that panel — for Mom Data “Know more” modals.
    */
   singleTab?: PumpingSessionsTab
+  sessions?: PumpingSession[]
+  hourlyVolume?: HourlyVolumePoint[]
+  leftVsRight?: LeftRightPoint[]
 }
 
-export function PumpingSessionsSection({ singleTab }: PumpingSessionsSectionProps) {
-  const sessions = React.useMemo(() => getRecentPumpingSessions(), [])
+export function PumpingSessionsSection({
+  singleTab,
+  sessions: sessionsProp,
+  hourlyVolume,
+  leftVsRight,
+}: PumpingSessionsSectionProps) {
+  const sessions = React.useMemo(
+    () => sessionsProp ?? getRecentPumpingSessions(),
+    [sessionsProp]
+  )
+  const hourlyData = hourlyVolume && hourlyVolume.length > 0 ? hourlyVolume : fallbackHourlyMilkVolumeData
+  const leftRightData = leftVsRight && leftVsRight.length > 0 ? leftVsRight : fallbackLeftVsRightData
 
   if (singleTab === "trend") {
     return (
       <div className="w-full p-3">
-        <MilkVolumeTrendPanel />
+        <MilkVolumeTrendPanel data={hourlyData} />
       </div>
     )
   }
   if (singleTab === "leftRight") {
     return (
       <div className="w-full p-3">
-        <LeftVsRightPanel />
+        <LeftVsRightPanel data={leftRightData} />
       </div>
     )
   }
@@ -76,11 +90,11 @@ export function PumpingSessionsSection({ singleTab }: PumpingSessionsSectionProp
       </TabsList>
 
       <TabsContent value="trend" className="mt-0 p-3">
-        <MilkVolumeTrendPanel />
+        <MilkVolumeTrendPanel data={hourlyData} />
       </TabsContent>
 
       <TabsContent value="leftRight" className="mt-0 p-3">
-        <LeftVsRightPanel />
+        <LeftVsRightPanel data={leftRightData} />
       </TabsContent>
 
       <TabsContent value="recent" className="mt-0">
@@ -103,20 +117,20 @@ export function PumpingSessionsSection({ singleTab }: PumpingSessionsSectionProp
   )
 }
 
-function MilkVolumeTrendPanel() {
+function MilkVolumeTrendPanel({ data }: { data: HourlyVolumePoint[] }) {
+  const maxVolume = Math.max(100, ...data.map((point) => point.volume))
   return (
     <>
       <p className="text-sm font-medium mb-2">Hourly milk volume (ml)</p>
       <ChartContainer config={hourlyChartConfig} className="aspect-auto h-[200px] w-full">
-        <BarChart accessibilityLayer data={hourlyMilkVolumeData} margin={{ left: 12, right: 12 }}>
+        <BarChart accessibilityLayer data={data} margin={{ left: 12, right: 12 }}>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} minTickGap={32} />
           <YAxis
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            domain={[0, 100]}
-            ticks={[0, 20, 40, 60, 80, 100]}
+            domain={[0, maxVolume]}
             tickFormatter={(v) => `${v} ml`}
           />
           <ChartTooltip
@@ -131,7 +145,7 @@ function MilkVolumeTrendPanel() {
             }
           />
           <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
-            {hourlyMilkVolumeData.map((entry, index) => (
+            {data.map((entry, index) => (
               <Cell key={`${entry.hour}-${index}`} fill={getVolumeBarColor(entry.volume)} />
             ))}
           </Bar>
@@ -141,12 +155,12 @@ function MilkVolumeTrendPanel() {
   )
 }
 
-function LeftVsRightPanel() {
+function LeftVsRightPanel({ data }: { data: LeftRightPoint[] }) {
   return (
     <>
       <p className="text-sm font-medium mb-2">Left vs Right breast output (ml)</p>
       <ChartContainer config={leftRightChartConfig} className="h-[200px] w-full">
-        <BarChart data={leftVsRightData} margin={{ left: 0, right: 10 }}>
+        <BarChart data={data} margin={{ left: 0, right: 10 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis tickLine={false} axisLine={false} tickMargin={8} />

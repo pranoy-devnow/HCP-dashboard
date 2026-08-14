@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { getCaseFiles, getBabyTitle } from "@/services/caseFilesService"
 import { getAlerts, markAlertRead } from "@/services/alertsService"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { markPendingConsultRead } from "@/services/pendingConsultReadService"
 import { useAlertsReadIds } from "@/hooks/use-alerts-read-ids"
 import { usePendingConsultReadIds } from "@/hooks/use-pending-consult-read-ids"
@@ -62,11 +63,30 @@ export default function MyDayPage() {
     setOpenMobile(false)
   }, [setOpen, setOpenMobile])
 
-  const caseFiles = React.useMemo(() => getCaseFiles(), [])
-  const priorityCases = React.useMemo(() => getPriorityCases(caseFiles, now), [caseFiles, now])
-  const alerts = React.useMemo(() => getAlerts(), [])
-  const readAlertIds = useAlertsReadIds()
-  const pendingConsultReadIds = usePendingConsultReadIds()
+  const { data: dashboard, isLoading, error } = useDashboardData()
+  const caseFiles = React.useMemo(
+    () => (dashboard ? getCaseFiles(dashboard) : []),
+    [dashboard]
+  )
+  const priorityCases = React.useMemo(
+    () => getPriorityCases(caseFiles, now, dashboard?.config.criticalWindowHours),
+    [caseFiles, now, dashboard]
+  )
+  const alerts = React.useMemo(() => getAlerts(dashboard), [dashboard])
+  const localReadAlertIds = useAlertsReadIds()
+  const localPendingConsultReadIds = usePendingConsultReadIds()
+  const readAlertIds = React.useMemo(() => {
+    const ids = new Set(localReadAlertIds)
+    for (const alert of alerts) {
+      if (alert.read) ids.add(alert.id)
+    }
+    return ids
+  }, [localReadAlertIds, alerts])
+  const pendingConsultReadIds = React.useMemo(() => {
+    const ids = new Set(localPendingConsultReadIds)
+    for (const id of dashboard?.pendingConsultReadIds ?? []) ids.add(id)
+    return ids
+  }, [localPendingConsultReadIds, dashboard])
 
   /** All clinical alerts appear under Critical Alerts; every row uses red styling. */
   const criticalAlertsAll = React.useMemo(() => alerts, [alerts])
@@ -104,6 +124,10 @@ export default function MyDayPage() {
       className="px-4 lg:px-6 space-y-6"
       onClickCapture={collapseSidebarFromMyDayContent}
     >
+      {isLoading && (
+        <p className="text-sm text-muted-foreground">Loading live dashboard data…</p>
+      )}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <Tabs defaultValue="critical-alerts" className="w-full">
         <TabsList className="!h-auto w-full grid grid-cols-3 gap-3 rounded-none border-0 bg-transparent p-0 shadow-none">
           <TabsTrigger
